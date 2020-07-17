@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "663633963842",
+    "firebase_url": "https://share-me-a7017.firebaseio.com",
+    "project_id": "share-me-a7017",
+    "storage_bucket": "share-me-a7017.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:663633963842:android:2a725f6eb0d22c099376db",
+        "android_client_info": {
+          "package_name": "az.share_me"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "663633963842-9422566d1tkgnnt3a24dqso4j1d4pooe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqW4_jpwRqWSRMVWLFj_w9oN_2ZGTq3cU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "663633963842-9422566d1tkgnnt3a24dqso4j1d4pooe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

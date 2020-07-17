@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:share_me/utils/customValues.dart';
+import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/helper/localData.dart';
+import 'package:share_me/ui/sign/registerPage.dart';
 
 import 'loginPage.dart';
 
@@ -9,6 +11,12 @@ class SignPage extends StatefulWidget {
 }
 
 class _SignPageState extends State<SignPage> {
+
+  @override
+  void initState() {
+    super.initState();
+    LocalData.instance.initSP();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +65,7 @@ class _SignPageState extends State<SignPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'People',
+                      'Share Me',
                       style: TextStyle(
                           color: Colors.deepOrange,
                           fontWeight: FontWeight.bold,
@@ -103,7 +111,15 @@ class _SignPageState extends State<SignPage> {
                           ),
                           Expanded(
                             child: RaisedButton(
-                              onPressed: (){},
+                              onPressed: (){
+                                Navigator
+                                    .of(context)
+                                    .push(
+                                  MaterialPageRoute(
+                                    builder: (_) => RegisterPage()
+                                  )
+                                );
+                              },
                               padding: EdgeInsets.all(10),
                               color: Colors.deepOrange,
                               shape: RoundedRectangleBorder(
@@ -117,9 +133,8 @@ class _SignPageState extends State<SignPage> {
                                       fontWeight: FontWeight.w500,
                                       fontSize: 20
                                   )
-                              ),
-
-                            ),
+                              )
+                            )
                           )
                         ]
                     )

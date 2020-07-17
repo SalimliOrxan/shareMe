@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:share_me/helper/auth.dart';
+import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/helper/localData.dart';
+import 'package:share_me/helper/utils.dart';
+import 'package:share_me/helper/validation.dart';
+import 'package:share_me/models/user.dart';
 import 'package:share_me/ui/navigation/navigationPage.dart';
-import 'package:share_me/utils/customValues.dart';
+import 'package:share_me/ui/sign/registerPage.dart';
 
 class LoginPage extends StatefulWidget {
 
@@ -10,11 +16,21 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
 
   GlobalKey<FormState>_keyForm;
+  User _user;
+  TextEditingController _controllerEmail;
 
   @override
   void initState() {
     super.initState();
     _keyForm = GlobalKey();
+    _user = User();
+    _controllerEmail = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controllerEmail.dispose();
+    super.dispose();
   }
 
   @override
@@ -57,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _title(){
     return Text(
-      'People',
+      'Share Me',
       style: TextStyle(
           color: Colors.deepOrange,
           fontWeight: FontWeight.bold,
@@ -82,12 +98,17 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         children: <Widget>[
           TextFormField(
+            controller: _controllerEmail,
             style: TextStyle(color: Colors.white),
             decoration: InputDecoration(
                 labelText: 'Email Address',
                 labelStyle: TextStyle(color: Colors.white)
             ),
-            keyboardType: TextInputType.emailAddress
+            keyboardType: TextInputType.emailAddress,
+            validator: (email){
+              return validateEmail(email) ? null : 'email is wrong';
+            },
+            onSaved: (email) => _user.email = email.trim()
           ),
           TextFormField(
             style: TextStyle(color: Colors.white),
@@ -96,7 +117,9 @@ class _LoginPageState extends State<LoginPage> {
                 labelStyle: TextStyle(color: Colors.white)
             ),
             keyboardType: TextInputType.visiblePassword,
+
             obscureText: true,
+            onSaved: (password) => _user.password = password.trim()
           ),
           _forgot()
         ]
@@ -110,7 +133,15 @@ class _LoginPageState extends State<LoginPage> {
       child: Align(
         alignment: Alignment.centerRight,
         child: InkWell(
-          onTap: (){},
+          onTap: (){
+            if(_controllerEmail.text.isNotEmpty && _controllerEmail.text != null){
+              showLoading(context);
+              Auth
+                  .instance
+                  .resetPassword(_controllerEmail.text)
+                  .whenComplete(() => Navigator.of(context).pop());
+            } else showToast('Fill email address', true);
+          },
           child: Text(
             'Forgot your password?',
             style: TextStyle(
@@ -128,17 +159,25 @@ class _LoginPageState extends State<LoginPage> {
       width: double.infinity,
       child: RaisedButton(
         onPressed: (){
-          Navigator
-              .of(context)
-              .pushReplacement(
-              MaterialPageRoute(
-                  builder: (_) => NavigationPage()
-              )
-          );
-
-
           if(_keyForm.currentState.validate()){
             _keyForm.currentState.save();
+
+            showLoading(context);
+            Auth.instance.login(_user.email, _user.password).then((result) async {
+              Navigator.of(context).pop();
+
+              if(result != null){
+                await LocalData.instance.setBool(LocalData.instance.login, true);
+
+                Navigator
+                    .of(context)
+                    .pushReplacement(
+                    MaterialPageRoute(
+                        builder: (_) => NavigationPage()
+                    )
+                );
+              }
+            });
           } // else registerData = RequestRegisterData();
         },
         padding: EdgeInsets.all(10),
@@ -170,9 +209,20 @@ class _LoginPageState extends State<LoginPage> {
             color: Colors.grey
           )
         ),
-        Text(
-          "Register",
-          style: TextStyle(color: Colors.deepOrange)
+        InkWell(
+          onTap: (){
+            Navigator
+                .of(context)
+                .push(
+                MaterialPageRoute(
+                    builder: (_) => RegisterPage()
+                )
+            );
+          },
+          child: Text(
+            "Register",
+            style: TextStyle(color: Colors.deepOrange)
+          ),
         )
       ]
     );

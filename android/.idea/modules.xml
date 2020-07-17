@@ -4,6 +4,11 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/android.iml" filepath="$PROJECT_DIR$/.idea/modules/android.iml" group="android" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="android/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-248854451/audioplayer.iml" filepath="$PROJECT_DIR$/.idea/modules/-248854451/audioplayer.iml" group="android/audioplayer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1179897041/cloud_firestore.iml" filepath="$PROJECT_DIR$/.idea/modules/-1179897041/cloud_firestore.iml" group="android/cloud_firestore" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1788229619/firebase_auth.iml" filepath="$PROJECT_DIR$/.idea/modules/-1788229619/firebase_auth.iml" group="android/firebase_auth" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1083446163/firebase_core.iml" filepath="$PROJECT_DIR$/.idea/modules/-1083446163/firebase_core.iml" group="android/firebase_core" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1278846677/flutter_audio_recorder.iml" filepath="$PROJECT_DIR$/.idea/modules/1278846677/flutter_audio_recorder.iml" group="android/flutter_audio_recorder" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/630170330/flutter_keyboard_visibility.iml" filepath="$PROJECT_DIR$/.idea/modules/630170330/flutter_keyboard_visibility.iml" group="android/flutter_keyboard_visibility" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1566639471/path_provider.iml" filepath="$PROJECT_DIR$/.idea/modules/-1566639471/path_provider.iml" group="android/path_provider" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1483926008/sqflite.iml" filepath="$PROJECT_DIR$/.idea/modules/-1483926008/sqflite.iml" group="android/sqflite" />

@@ -1,6 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:share_me/utils/customValues.dart';
+import 'package:share_me/helper/auth.dart';
+import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/helper/localData.dart';
+import 'package:share_me/ui/sign/loginPage.dart';
 
 class NavigationProfilePage extends StatefulWidget {
 
@@ -20,80 +24,86 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
 
 
   Widget _body(){
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        _imageAndName(),
-        SizedBox(height: 50),
-        _logout(),
-        _logout(),
-        _logout(),
-        _logout(),
-        Spacer()
-      ]
+    return SingleChildScrollView(
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            _imageAndName(),
+            SizedBox(height: 50),
+            _logout()
+          ]
+      ),
     );
   }
 
   Widget _imageAndName(){
     return Container(
-      height: 300,
+      height: 400,
       width: double.infinity,
       child: Stack(
-        alignment: Alignment.topCenter,
-        children: <Widget>[
-          Container(
-            height: 200,
-            width: double.infinity,
-            decoration: BoxDecoration(
-                image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: NetworkImage('https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__340.jpg')
+          alignment: Alignment.topCenter,
+          children: <Widget>[
+            Container(
+                height: 300,
+                width: double.infinity,
+                child: CachedNetworkImage(
+                    imageUrl: 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__340.jpg',
+                    placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
+                    fit: BoxFit.cover
                 )
-            )
-          ),
-          Positioned(
-            bottom: 20,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    Container(
-                        height: 110,
-                        width: 110,
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: colorApp
-                        )
-                    ),
-                    Container(
-                        height: 100,
-                        width: 100,
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                                fit: BoxFit.cover,
-                                image: NetworkImage('https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRFU7U2h0umyF0P6E_yhTX45sGgPEQAbGaJ4g&usqp=CAU')
-                            )
-                        )
-                    )
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Text(
-                    'John Doe',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20
-                    ),
-                  ),
-                )
-              ],
             ),
-          )
-        ]
+            Positioned(
+              bottom: 20,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      Container(
+                          height: 110,
+                          width: 110,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: colorApp
+                          )
+                      ),
+                      CachedNetworkImage(
+                          imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRFU7U2h0umyF0P6E_yhTX45sGgPEQAbGaJ4g&usqp=CAU',
+                          placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
+                          fit: BoxFit.cover,
+                          imageBuilder: (context, imageProvider){
+                            return Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    image: DecorationImage(
+                                      image: imageProvider,
+                                      fit: BoxFit.cover
+                                    )
+                                )
+                            );
+                          }
+                      )
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      'John Doe',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ]
       ),
     );
   }
@@ -102,24 +112,33 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
       child: RaisedButton(
-        onPressed: (){
+        onPressed: () async {
+          await Auth.instance.logout();
+          await LocalData.instance.clearAll();
 
+          Navigator
+              .of(context)
+              .pushReplacement(
+              MaterialPageRoute(
+                  builder: (_) => LoginPage()
+              )
+          );
         },
         color: Colors.deepOrange,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5)
         ),
         child: Row(
-          children: <Widget>[
-            Icon(Icons.exit_to_app, color: Colors.white, size: 30),
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Text(
-                'Logout',
-                style: TextStyle(color: Colors.white)
-              ),
-            )
-          ]
+            children: <Widget>[
+              Icon(Icons.exit_to_app, color: Colors.white, size: 20),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(
+                    'Logout',
+                    style: TextStyle(color: Colors.white)
+                ),
+              )
+            ]
         ),
       ),
     );

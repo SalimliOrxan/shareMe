@@ -6,9 +6,10 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/providers/providerNavigationHome.dart';
 import 'package:share_me/ui/fabElements/voice.dart';
-import 'package:share_me/utils/customValues.dart';
 
 enum Fab {voice, location, snippet, link, photo}
 
@@ -23,6 +24,20 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
   ProviderNavigationHome _providerNavigationHome;
   ScrollController _scrollController;
+  RefreshController _refreshController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController  = ScrollController();
+    _refreshController = RefreshController(initialRefresh: false);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +53,13 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
   Widget _body(){
     return Padding(
-      padding: EdgeInsets.fromLTRB(18, 18, 18, 0),
-      child: _cards(),
+      padding: EdgeInsets.fromLTRB(18, 0, 18, 0),
+      child: SmartRefresher(
+        controller: _refreshController,
+        onRefresh: _onRefresh,
+        header: ClassicHeader(),
+        child: _cards(),
+      ),
     );
   }
 
@@ -102,10 +122,8 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
-
   Widget _cards(){
     return ListView.builder(
-        controller: _scrollController,
         itemCount: 9,
         itemBuilder: (context, position){
           return _cardItem(position);
@@ -501,16 +519,15 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
   void _initParams(){
     _providerNavigationHome = Provider.of<ProviderNavigationHome>(context);
-    _scrollController       = ScrollController();
 
     WidgetsBinding.instance.addPostFrameCallback((_){
-      _scrollController.addListener((){
-        if(_scrollController.position.userScrollDirection == ScrollDirection.reverse){
+      _refreshController.position.addListener((){
+        if(_refreshController.position.userScrollDirection == ScrollDirection.reverse){
           if(_providerNavigationHome.dialVisible){
             _providerNavigationHome.dialVisible = false;
           }
         } else {
-          if(_scrollController.position.userScrollDirection == ScrollDirection.forward){
+          if(_refreshController.position.userScrollDirection == ScrollDirection.forward){
             if(!_providerNavigationHome.dialVisible) {
               _providerNavigationHome.dialVisible = true;
             }
@@ -549,5 +566,22 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
       case Fab.photo:
         break;
     }
+  }
+
+  void _onRefresh() async {
+    _refreshController.refreshCompleted();
+//    var response = await Future.wait([
+//      _model.getGuestHouses(),
+//      _model.getHotTours(),
+//      _model.getReview()
+//    ]);
+//
+//    for(var result in response){
+//      if(result != Status.Success){
+//        _refreshController.refreshFailed();
+//        return;
+//      }
+//    }
+//    _refreshController.refreshCompleted();
   }
 }

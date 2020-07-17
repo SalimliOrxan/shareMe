@@ -1,13 +1,12 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
+import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/providers/navigationProvider.dart';
 import 'package:share_me/ui/navigation/navigationHomePage.dart';
 import 'package:share_me/ui/navigation/navigationMyPostsPage.dart';
 import 'package:share_me/ui/navigation/navigationProfilePage.dart';
-import 'package:share_me/utils/customValues.dart';
 
 class NavigationPage extends StatefulWidget {
 
@@ -28,6 +27,10 @@ class _NavigationPageState extends State<NavigationPage> {
     _pages.add(NavigationProfilePage());
 
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _providerNavigation.positionPage = 0;
+    });
   }
 
   @override
@@ -36,7 +39,10 @@ class _NavigationPageState extends State<NavigationPage> {
 
     return Scaffold(
       backgroundColor: colorApp,
-      body: _body(),
+      body: WillPopScope(
+        child: _body(),
+        onWillPop: () => null,
+      ),
       bottomNavigationBar: _navigationBar(),
     );
   }

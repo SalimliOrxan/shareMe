@@ -1,8 +1,19 @@
 # This is a generated file; do not edit or check into version control.
 audioplayer=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\audioplayer-0.8.1\\
+cloud_firestore=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\cloud_firestore-0.13.7\\
+cloud_firestore_web=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\cloud_firestore_web-0.1.1+2\\
+firebase_auth=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\firebase_auth-0.16.1\\
+firebase_auth_web=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\firebase_auth_web-0.1.3+1\\
+firebase_core=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\firebase_core-0.4.5\\
+firebase_core_web=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\firebase_core_web-0.1.1+2\\
 flutter_audio_recorder=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\flutter_audio_recorder-0.5.5\\
 flutter_keyboard_visibility=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\flutter_keyboard_visibility-3.2.1\\
+fluttertoast=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\fluttertoast-7.0.1\\
 path_provider=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider-1.6.11\\
 path_provider_linux=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_linux-0.0.1+2\\
 path_provider_macos=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\path_provider_macos-0.0.4+3\\
+shared_preferences=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\shared_preferences-0.5.8\\
+shared_preferences_linux=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\shared_preferences_linux-0.0.2+1\\
+shared_preferences_macos=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\shared_preferences_macos-0.0.1+10\\
+shared_preferences_web=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\shared_preferences_web-0.1.2+7\\
 sqflite=C:\\Users\\MSI GAMING\\code\\Flutter\\flutter\\.pub-cache\\hosted\\pub.dartlang.org\\sqflite-1.3.1\\

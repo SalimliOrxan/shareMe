@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:share_me/utils/customValues.dart';
+import 'package:share_me/helper/customValues.dart';
 
 class NavigationMyPostsPage extends StatefulWidget {
 

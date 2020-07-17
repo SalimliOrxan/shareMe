@@ -37,6 +37,13 @@ dependencies:
   cached_network_image: ^2.2.0+1
   flutter_audio_recorder: ^0.5.5
   audioplayer: 0.8.1
+  firebase_auth: ^0.16.1
+  cloud_firestore: ^0.13.7
+  logger: ^0.9.1
+  fluttertoast: ^7.0.1
+  flutter_spinkit: ^4.1.2+1
+  shared_preferences: ^0.5.8
+  pull_to_refresh: ^1.6.0
 
 dev_dependencies:
   flutter_test:

@@ -3,8 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:share_me/helper/auth.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/helper/localData.dart';
-import 'package:share_me/ui/sign/loginPage.dart';
 
 class NavigationProfilePage extends StatefulWidget {
 
@@ -112,18 +110,7 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
       child: RaisedButton(
-        onPressed: () async {
-          await Auth.instance.logout();
-          await LocalData.instance.clearAll();
-
-          Navigator
-              .of(context)
-              .pushReplacement(
-              MaterialPageRoute(
-                  builder: (_) => LoginPage()
-              )
-          );
-        },
+        onPressed: () => Auth.instance.logout(),
         color: Colors.deepOrange,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5)

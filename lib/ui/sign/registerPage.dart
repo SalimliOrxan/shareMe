@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:share_me/helper/auth.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/helper/localData.dart';
 import 'package:share_me/helper/utils.dart';
 import 'package:share_me/helper/validation.dart';
 import 'package:share_me/models/user.dart';
-import 'package:share_me/ui/navigation/navigationPage.dart';
+import 'package:share_me/providers/providerNavigation.dart';
 
 class RegisterPage extends StatefulWidget {
 
@@ -23,6 +23,7 @@ class _RegisterPageState extends State<RegisterPage> {
   GlobalKey<FormState>_keyForm;
   User _user;
   Timer _timer;
+  Stopwatch _stopwatch;
   TextEditingController _controllerPassword;
 
   @override
@@ -36,6 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void dispose() {
     if(_timer != null)  _timer.cancel();
+    if(_stopwatch != null && _stopwatch.isRunning)  _stopwatch.stop();
     _controllerPassword.dispose();
     super.dispose();
   }
@@ -216,36 +218,33 @@ class _RegisterPageState extends State<RegisterPage> {
   void _registerApi(){
     if(_keyForm.currentState.validate()){
       _keyForm.currentState.save();
+      final nav = Provider.of<ProviderNavigation>(context, listen: false);
       showLoading(context);
 
-      Auth
-          .instance
-          .register(_user.email, _user.password)
-          .then((user){
-            if(user != null){
-              Future(() async {
-                _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
-                  await FirebaseAuth.instance.currentUser()..reload();
-                  var user = await FirebaseAuth.instance.currentUser();
-                  if(user.isEmailVerified){
-                    Navigator.of(context).pop();
-                    timer.cancel();
-                    await LocalData.instance.setBool(LocalData.instance.login, true);
+      bool isOpen = false;
 
-                    Navigator
-                        .of(context)
-                        .pushReplacement(
-                        MaterialPageRoute(
-                            builder: (_) => NavigationPage()
-                        )
-                    );
-                  }
-                });
-              });
-            } else Navigator.of(context).pop();
-          }).catchError((onError){
-            Navigator.of(context).pop();
+      Auth.instance.register(_user.email, _user.password).then((user) async {
+        if(user != null){
+          _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
+            await FirebaseAuth.instance.currentUser()..reload();
+            var user = await FirebaseAuth.instance.currentUser();
+            if(user.isEmailVerified){
+              if(_stopwatch != null && _stopwatch.isRunning) _stopwatch.stop();
+              timer.cancel();
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              nav.isVerified = true;
+            }
+            else if(!isOpen){
+              isOpen = true;
+              // for loading dialog
+              Navigator.of(context).pop();
+              _stopwatch = showVerificationDialog(context);
+            }
           });
+        } else Navigator.of(context).pop();
+      }).catchError((error){
+        Navigator.of(context).pop();
+      });
     } // else registerData = RequestRegisterData();
   }
 }

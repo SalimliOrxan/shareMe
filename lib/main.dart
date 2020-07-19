@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:share_me/helper/localData.dart';
-import 'package:share_me/providers/navigationProvider.dart';
+import 'package:share_me/helper/auth.dart';
+import 'package:share_me/providers/providerNavigation.dart';
 import 'package:share_me/providers/providerFab.dart';
 import 'package:share_me/providers/providerNavigationHome.dart';
-import 'package:share_me/ui/navigation/navigationPage.dart';
-
-import 'ui/sign/signPage.dart';
+import 'package:share_me/ui/detector.dart';
 
 void main(){
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,40 +13,30 @@ void main(){
   SystemChrome
       .setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
       .then((value) async {
-    Widget page = await isLogin();
     runApp(
         MultiProvider(
             providers: [
+              StreamProvider.value(value: Auth.instance.user),
               ChangeNotifierProvider(create: (_) => ProviderNavigation()),
               ChangeNotifierProvider(create: (_) => ProviderNavigationHome()),
               ChangeNotifierProvider(create: (_) => ProviderFab())
             ],
-            child: MyApp(page: page)
+            child: MyApp()
         )
     );
   });
 }
 
-Future<Widget> isLogin() async {
-  await LocalData.instance.initSP();
-  bool isLogin = LocalData.instance.getBool(LocalData.instance.login);
-  return isLogin ? NavigationPage() : SignPage();
-}
-
 class MyApp extends StatelessWidget {
 
-  final Widget page;
-  MyApp({@required this.page});
-
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Share Me',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: page
+        title: 'Share Me',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        home: Detector()
     );
   }
 }

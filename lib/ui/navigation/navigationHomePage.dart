@@ -431,7 +431,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
               child: Align(
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
-                      onTap: (){
+                      onTap: () {
 
                       },
                       child: Padding(

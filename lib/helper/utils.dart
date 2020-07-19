@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'file:///C:/Users/MSI%20GAMING/code/Flutter/ShareMe/share_me/lib/helper/customValues.dart';
-
+import 'package:provider/provider.dart';
+import 'package:share_me/providers/providerNavigation.dart';
 
 
 Future<void> showDialogFab(BuildContext context, Widget view) async {
@@ -45,7 +47,7 @@ void showLoading(BuildContext context){
       barrierDismissible: false,
       builder: (BuildContext _context){
         return WillPopScope(
-            onWillPop: (){},
+            onWillPop: () => null,
             child: SpinKitRipple(
               color: Colors.white,
               size: 120.0,
@@ -55,4 +57,98 @@ void showLoading(BuildContext context){
         );
       }
   );
+}
+
+Stopwatch showVerificationDialog(BuildContext context){
+  Stopwatch stopwatch = Stopwatch();
+  String sending = 'Verification email is sending';
+  String sent    = 'Verification email has been sent';
+
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext _context){
+        return Consumer<ProviderNavigation>(
+          builder: (context, snapshot, child){
+            return WillPopScope(
+              onWillPop: null,
+              child: AlertDialog(
+                backgroundColor: Colors.blueGrey,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5)
+                ),
+                elevation: 5,
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      snapshot.status,
+                      style: TextStyle(
+                          color: Colors.lightGreenAccent
+                      ),
+                    ),
+                    Text(
+                      'Waiting for approving...',
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                    ),
+                    Visibility(
+                      visible: !snapshot.visibleButton,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Text(
+                          snapshot.time,
+                          style: TextStyle(
+                              color: Colors.white
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: <Widget>[
+                  Visibility(
+                    visible: snapshot.visibleButton,
+                    child: RaisedButton(
+                      onPressed: () async {
+                        snapshot.visibleButton = false;
+                        snapshot.status = sending;
+
+                        await FirebaseAuth.instance.currentUser()..sendEmailVerification();
+
+                        int time = 60;
+                        stopwatch.start();
+                        Timer.periodic(Duration(seconds: 1), (timer) async {
+                          if(stopwatch.isRunning){
+                            if(timer.tick == time){
+                              timer.cancel();
+                              snapshot.visibleButton = true;
+                              snapshot.time = time.toString();
+                            } else {
+                              snapshot.time = (time - timer.tick).toString();
+                            }
+                          } else {
+                            timer.cancel();
+                            snapshot.visibleButton = true;
+                            snapshot.time = time.toString();
+                          }
+                        });
+                        snapshot.status = sent;
+                      },
+                      child: Text('Send again'),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5)
+                      ),
+                      color: Colors.deepOrange,
+                    ),
+                  )
+                ],
+              ),
+            );
+          }
+        );
+      }
+  );
+  return stopwatch;
 }

@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/providers/navigationProvider.dart';
+import 'package:share_me/providers/providerNavigation.dart';
 import 'package:share_me/ui/navigation/navigationHomePage.dart';
 import 'package:share_me/ui/navigation/navigationMyPostsPage.dart';
 import 'package:share_me/ui/navigation/navigationProfilePage.dart';
@@ -41,7 +41,7 @@ class _NavigationPageState extends State<NavigationPage> {
       backgroundColor: colorApp,
       body: WillPopScope(
         child: _body(),
-        onWillPop: () => null,
+        onWillPop: null,
       ),
       bottomNavigationBar: _navigationBar(),
     );

@@ -1,11 +1,12 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:share_me/helper/auth.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/helper/localData.dart';
 import 'package:share_me/helper/utils.dart';
 import 'package:share_me/helper/validation.dart';
 import 'package:share_me/models/user.dart';
-import 'package:share_me/ui/navigation/navigationPage.dart';
 import 'package:share_me/ui/sign/registerPage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -18,6 +19,8 @@ class _LoginPageState extends State<LoginPage> {
   GlobalKey<FormState>_keyForm;
   User _user;
   TextEditingController _controllerEmail;
+  Timer _timer;
+  Stopwatch _stopwatch;
 
   @override
   void initState() {
@@ -29,6 +32,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    if(_timer != null)  _timer.cancel();
+    if(_stopwatch != null && _stopwatch.isRunning)  _stopwatch.stop();
     _controllerEmail.dispose();
     super.dispose();
   }
@@ -158,28 +163,7 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       width: double.infinity,
       child: RaisedButton(
-        onPressed: (){
-          if(_keyForm.currentState.validate()){
-            _keyForm.currentState.save();
-
-            showLoading(context);
-            Auth.instance.login(_user.email, _user.password).then((result) async {
-              Navigator.of(context).pop();
-
-              if(result != null){
-                await LocalData.instance.setBool(LocalData.instance.login, true);
-
-                Navigator
-                    .of(context)
-                    .pushReplacement(
-                    MaterialPageRoute(
-                        builder: (_) => NavigationPage()
-                    )
-                );
-              }
-            });
-          } // else registerData = RequestRegisterData();
-        },
+        onPressed: _loginApi,
         padding: EdgeInsets.all(10),
         color: Colors.deepOrange,
         shape: RoundedRectangleBorder(
@@ -213,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
           onTap: (){
             Navigator
                 .of(context)
-                .push(
+                .pushReplacement(
                 MaterialPageRoute(
                     builder: (_) => RegisterPage()
                 )
@@ -226,5 +210,36 @@ class _LoginPageState extends State<LoginPage> {
         )
       ]
     );
+  }
+
+
+  void _loginApi() async {
+    if(_keyForm.currentState.validate()){
+      _keyForm.currentState.save();
+
+       showLoading(context);
+
+      Auth.instance.login(_user.email, _user.password).then((user) async {
+        if(user != null){
+          if(user.isEmailVerified){
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          } else {
+            _stopwatch = showVerificationDialog(context);
+
+            _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
+              await FirebaseAuth.instance.currentUser()..reload();
+              var user = await FirebaseAuth.instance.currentUser();
+              if(user.isEmailVerified){
+                if(_stopwatch.isRunning) _stopwatch.stop();
+                timer.cancel();
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              }
+            });
+          }
+        } else Navigator.of(context).pop();
+      }).catchError((error){
+        Navigator.of(context).pop();
+      });
+    } // else registerData = RequestRegisterData();
   }
 }

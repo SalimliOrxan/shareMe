@@ -8,7 +8,8 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/providers/providerNavigationHome.dart';
+import 'package:share_me/provider/providerNavigationHome.dart';
+import 'package:share_me/ui/fabElements/imageOrVideo.dart';
 import 'package:share_me/ui/fabElements/voice.dart';
 
 enum Fab {voice, location, snippet, link, photo}
@@ -496,6 +497,8 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
+
+
   void _showCommentsBottomSheet(){
     showMaterialModalBottomSheet (
         context: context,
@@ -546,7 +549,10 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         showModalBottomSheet(
             context: context,
             builder: (BuildContext context){
-              return VoiceRecorder(isInsert: true);
+              return ClipRRect(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                  child: VoiceRecorder(isInsert: true)
+              );
             }
         );
         break;
@@ -564,6 +570,19 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 //        );
         break;
       case Fab.photo:
+        showModalBottomSheet(
+            isScrollControlled: true,
+            context: context,
+            builder: (BuildContext context){
+              return ClipRRect(
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                child: FractionallySizedBox(
+                  heightFactor: 0.7,
+                  child: ImageOrVideo(),
+                ),
+              );
+            }
+        );
         break;
     }
   }

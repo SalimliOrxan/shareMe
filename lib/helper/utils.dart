@@ -5,8 +5,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:share_me/providers/providerNavigation.dart';
+import 'package:share_me/provider/providerNavigation.dart';
+
+
+final _picker = ImagePicker();
 
 
 Future<void> showDialogFab(BuildContext context, Widget view) async {
@@ -71,7 +75,7 @@ Stopwatch showVerificationDialog(BuildContext context){
         return Consumer<ProviderNavigation>(
           builder: (context, snapshot, child){
             return WillPopScope(
-              onWillPop: null,
+              onWillPop: () => null,
               child: AlertDialog(
                 backgroundColor: Colors.blueGrey,
                 shape: RoundedRectangleBorder(
@@ -151,4 +155,14 @@ Stopwatch showVerificationDialog(BuildContext context){
       }
   );
   return stopwatch;
+}
+
+Future<File> pickImage(bool isCamera) async {
+  final pickedFile = await _picker.getImage(source: isCamera ? ImageSource.camera : ImageSource.gallery);
+  return pickedFile != null ? File(pickedFile.path) : null;
+}
+
+Future<File> pickVideo(bool isCamera) async {
+  final pickedFile = await _picker.getVideo(source: isCamera ? ImageSource.camera : ImageSource.gallery, maxDuration: Duration(minutes: 10));
+  return pickedFile != null ? File(pickedFile.path) : null;
 }

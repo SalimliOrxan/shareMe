@@ -4,12 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:share_me/helper/auth.dart';
+import 'package:share_me/service/auth.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/helper/utils.dart';
 import 'package:share_me/helper/validation.dart';
-import 'package:share_me/models/user.dart';
-import 'package:share_me/providers/providerNavigation.dart';
+import 'package:share_me/model/user.dart';
+import 'package:share_me/provider/providerNavigation.dart';
 
 class RegisterPage extends StatefulWidget {
 

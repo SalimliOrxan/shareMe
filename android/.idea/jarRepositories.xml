@@ -31,5 +31,10 @@
       <option name="name" value="MavenLocal" />
       <option name="url" value="file:/$PROJECT_DIR$/../../../../../../MSI%20GAMING/.m2/repository/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven4" />
+      <option name="name" value="maven4" />
+      <option name="url" value="https://google.bintray.com/exoplayer/" />
+    </remote-repository>
   </component>
 </project>

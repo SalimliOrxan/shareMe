@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/providers/providerFab.dart';
+import 'package:share_me/provider/providerFab.dart';
 import 'package:file/local.dart';
 import 'package:file/file.dart';
 import 'package:path_provider/path_provider.dart';

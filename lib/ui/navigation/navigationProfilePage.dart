@@ -1,8 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:share_me/helper/auth.dart';
+import 'package:provider/provider.dart';
+import 'package:share_me/helper/utils.dart';
+import 'package:share_me/model/user.dart';
+import 'package:share_me/service/auth.dart';
 import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/service/storage.dart';
 
 class NavigationProfilePage extends StatefulWidget {
 
@@ -10,13 +14,18 @@ class NavigationProfilePage extends StatefulWidget {
   _NavigationProfilePageState createState() => _NavigationProfilePageState();
 }
 
+
 class _NavigationProfilePageState extends State<NavigationProfilePage> {
+
+  User _user;
 
   @override
   Widget build(BuildContext context) {
+    _user = Provider.of<User>(context);
+    
     return Scaffold(
       backgroundColor: colorApp,
-      body: _body(),
+      body: _body()
     );
   }
 
@@ -41,15 +50,21 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
       child: Stack(
           alignment: Alignment.topCenter,
           children: <Widget>[
-            Container(
-                height: 300,
-                width: double.infinity,
-                child: CachedNetworkImage(
-                    imageUrl: 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__340.jpg',
-                    placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
-                    fit: BoxFit.cover
-                )
+            GestureDetector(
+              onTap: () async {
+                final file = await pickImage(false);
+                if(file != null) Storage.instance.uploadImageCover(_user, file);
+              },
+              child: Container(
+                  height: 300,
+                  width: double.infinity,
+                  child: CachedNetworkImage(
+                      imageUrl: _user?.imgCover ?? '',
+                      placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
+                      fit: BoxFit.cover
+                  )
+              ),
             ),
             Positioned(
               bottom: 20,
@@ -68,7 +83,7 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
                           )
                       ),
                       CachedNetworkImage(
-                          imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRFU7U2h0umyF0P6E_yhTX45sGgPEQAbGaJ4g&usqp=CAU',
+                          imageUrl: _user?.imgProfile ?? '',
                           placeholder: (context, url) => Center(child: CircularProgressIndicator()),
                           errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
                           fit: BoxFit.cover,
@@ -91,7 +106,7 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
-                      'John Doe',
+                      _user?.name ?? '',
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 20

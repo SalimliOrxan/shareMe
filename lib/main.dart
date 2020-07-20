@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:share_me/helper/auth.dart';
-import 'package:share_me/providers/providerNavigation.dart';
-import 'package:share_me/providers/providerFab.dart';
-import 'package:share_me/providers/providerNavigationHome.dart';
+import 'package:share_me/provider/providerNavigation.dart';
+import 'package:share_me/provider/providerFab.dart';
+import 'package:share_me/provider/providerNavigationHome.dart';
+import 'package:share_me/service/auth.dart';
 import 'package:share_me/ui/detector.dart';
 
 void main(){
@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
+          canvasColor: Colors.transparent
         ),
         home: Detector()
     );

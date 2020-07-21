@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/provider/providerNavigation.dart';
-import 'package:share_me/ui/navigation/navigationHomePage.dart';
-import 'package:share_me/ui/navigation/navigationMyPostsPage.dart';
-import 'package:share_me/ui/navigation/navigationProfilePage.dart';
+import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
+import 'package:share_me/ui/navigation/myPosts/navigationMyPostsPage.dart';
+import 'package:share_me/ui/navigation/profile/navigationProfilePage.dart';
 
 class NavigationPage extends StatefulWidget {
 

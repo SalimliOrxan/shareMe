@@ -51,7 +51,43 @@ class Auth {
   Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
-      showToast('email has been sent successfully', false);
+      showToast('Email has been sent successfully', false);
+    } catch(e) {
+      _logger.v(e);
+      showToast(e.message, true);
+    }
+  }
+
+  Future<void> updatePassword(String oldPassword, String newPassword) async {
+    try {
+      FirebaseUser user = await _auth.currentUser();
+      AuthCredential credential = EmailAuthProvider.getCredential(
+        email: user.email,
+        password: oldPassword,
+      );
+      AuthResult authResult = await user.reauthenticateWithCredential(credential);
+      if(authResult != null){
+        await user.updatePassword(newPassword);
+        showToast('Password has been updated successfully', false);
+      }
+    } catch(e) {
+      _logger.v(e);
+      showToast(e.message, true);
+    }
+  }
+
+  Future<void> updateEmail(String email, String password) async {
+    try {
+      FirebaseUser user = await _auth.currentUser();
+      AuthCredential credential = EmailAuthProvider.getCredential(
+        email: user.email,
+        password: password,
+      );
+      AuthResult authResult = await user.reauthenticateWithCredential(credential);
+      if(authResult != null){
+        await user.updateEmail(email);
+        showToast('Email has been updated successfully', false);
+      }
     } catch(e) {
       _logger.v(e);
       showToast(e.message, true);

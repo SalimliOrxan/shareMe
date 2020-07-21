@@ -123,7 +123,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
                         _providerFab.file = file;
                       }
                     },
-                    icon: Icon(Icons.image, size: 20, color: Colors.white)
+                    icon: Icon(Icons.image, size: 40, color: Colors.white)
                 ),
                 IconButton(
                     onPressed: () async {
@@ -133,7 +133,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
                         _providerFab.file = file;
                       }
                     },
-                    icon: Icon(Icons.camera_alt, size: 20, color: Colors.white)
+                    icon: Icon(Icons.camera_alt, size: 40, color: Colors.white)
                 ),
               ],
             ),
@@ -148,7 +148,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
                         _providerFab.file = file;
                       }
                     },
-                    icon: Icon(Icons.video_library, size: 20, color: Colors.white)
+                    icon: Icon(Icons.video_library, size: 40, color: Colors.white)
                 ),
                 IconButton(
                     onPressed: () async {
@@ -158,7 +158,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
                         _providerFab.file = file;
                       }
                     },
-                    icon: Icon(Icons.videocam, size: 20, color: Colors.white)
+                    icon: Icon(Icons.videocam, size: 40, color: Colors.white)
                 ),
               ],
             )
@@ -169,7 +169,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
 
   Widget _postButton(){
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Container(
         width: double.infinity,
         child: RaisedButton(

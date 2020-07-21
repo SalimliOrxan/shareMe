@@ -109,7 +109,7 @@ class _RegisterPageState extends State<RegisterPage> {
             return validateUsername(name) ? null : 'fill name';
           },
           onSaved:  (name) => _user.name = name.trim()
-      ),
+      )
     );
   }
 
@@ -210,7 +210,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   )
               )
           )
-      ),
+      )
     );
   }
 
@@ -238,7 +238,7 @@ class _RegisterPageState extends State<RegisterPage> {
               isOpen = true;
               // for loading dialog
               Navigator.of(context).pop();
-              _stopwatch = showVerificationDialog(context);
+              _stopwatch = await showVerificationDialog(context);
             }
           });
         } else Navigator.of(context).pop();

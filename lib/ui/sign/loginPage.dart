@@ -224,7 +224,7 @@ class _LoginPageState extends State<LoginPage> {
           if(user.isEmailVerified){
             Navigator.of(context).popUntil((route) => route.isFirst);
           } else {
-            _stopwatch = showVerificationDialog(context);
+            _stopwatch = await showVerificationDialog(context);
 
             _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
               await FirebaseAuth.instance.currentUser()..reload();

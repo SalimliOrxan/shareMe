@@ -195,7 +195,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
             ]
           )
         ]
-      ),
+      )
     );
   }
 

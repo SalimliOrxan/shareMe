@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:share_me/helper/utils.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/helper/validation.dart';
 import 'package:share_me/model/user.dart';
-import 'package:share_me/service/storage.dart';
+import 'package:share_me/provider/providerProfile.dart';
 
 class EditPage extends StatefulWidget {
 
@@ -19,13 +20,27 @@ class EditPage extends StatefulWidget {
 
 class _EditPageState extends State<EditPage> {
 
+  ProviderProfile _providerProfile;
   GlobalKey<FormState>_keyForm = GlobalKey();
+  GlobalKey<ScaffoldState> _keyScaffold = GlobalKey();
   User _newUser = User();
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _providerProfile.imgCover   = null;
+      _providerProfile.imgProfile = null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _providerProfile = Provider.of<ProviderProfile>(context);
 
     return Scaffold(
+        key: _keyScaffold,
         backgroundColor: colorApp,
         appBar: _appBar(),
         body: _body()
@@ -46,31 +61,31 @@ class _EditPageState extends State<EditPage> {
     return LayoutBuilder(
         builder: (context, constraints){
           return SingleChildScrollView(
-            child: ConstrainedBox(
-                constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      _imageAndName(constraints.maxHeight),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(38, 10, 38, 20),
-                        child: Form(
-                          key: _keyForm,
-                          child: Column(
-                              children: <Widget>[
-                                _name(),
-                                _surname(),
-                                _password(),
-                                _buttonUpdate()
-                              ]
-                          ),
-                        )
-                      )
-                    ]
-                )
-            )
+              child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(38, 0, 38, 20),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          _imageAndName(constraints.maxHeight),
+                          Form(
+                            key: _keyForm,
+                            child: Column(
+                                children: <Widget>[
+                                  _name(),
+                                  _surname(),
+                                  _password(),
+                                  _buttonUpdate()
+                                ]
+                            ),
+                          )
+                        ]
+                    ),
+                  )
+              )
           );
         }
     );
@@ -100,33 +115,7 @@ class _EditPageState extends State<EditPage> {
                                   color: colorApp
                               )
                           ),
-                          CachedNetworkImage(
-                              imageUrl: widget.user?.imgProfile ?? '',
-                              placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                              errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
-                              fit: BoxFit.cover,
-                              imageBuilder: (context, imageProvider){
-                                return Stack(
-                                  children: <Widget>[
-                                    Container(
-                                        width: 100,
-                                        height: 100,
-                                        decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            image: DecorationImage(
-                                                image: imageProvider,
-                                                fit: BoxFit.cover
-                                            )
-                                        )
-                                    ),
-                                    Positioned(
-                                      bottom: 0,
-                                      child: _profileImgField()
-                                    )
-                                  ]
-                                );
-                              }
-                          )
+                          _profileImgField()
                         ],
                       ),
                       Padding(
@@ -153,11 +142,19 @@ class _EditPageState extends State<EditPage> {
           Container(
               height: maxHeight / 3,
               width: double.infinity,
-              child: CachedNetworkImage(
-                  imageUrl: widget.user?.imgCover ?? '',
-                  placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                  errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
-                  fit: BoxFit.cover
+              child: _providerProfile.imgCover == null
+                  ? ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: CachedNetworkImage(
+                    imageUrl: widget.user?.imgCover ?? '',
+                    placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => Container(decoration: BoxDecoration(color: Colors.blueGrey, borderRadius: BorderRadius.circular(20))),
+                    fit: BoxFit.cover
+                ),
+              )
+                  : ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.file(_providerProfile.imgCover, fit: BoxFit.cover)
               )
           ),
           Positioned(
@@ -165,12 +162,15 @@ class _EditPageState extends State<EditPage> {
               child: GestureDetector(
                 onTap: () async {
                   final file = await pickImage(false);
-                  if(file != null) Storage.instance.uploadImageCover(widget.user, file);
+                  _providerProfile.imgCover = file;
                 },
                 child: Container(
                     height: maxHeight / 3,
-                    width: 100,
-                    color: Colors.black26,
+                    width: 90,
+                    decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: BorderRadius.only(topRight: Radius.circular(20), bottomRight: Radius.circular(20))
+                    ),
                     child: Center(
                       child: Text(
                           'upload',
@@ -187,29 +187,69 @@ class _EditPageState extends State<EditPage> {
   }
 
   Widget _profileImgField(){
-    return GestureDetector(
-      onTap: () async {
-        final file = await pickImage(false);
-        if(file != null) Storage.instance.uploadImageProfile(widget.user, file);
-      },
-      child: Container(
-          width: 100,
-          height: 39,
-          decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(50), bottomRight: Radius.circular(50))
-          ),
-          child: Center(
-              child: Text(
-                'upload',
-                style: TextStyle(color: Colors.white),
-              )
-          )
-      ),
+    return Stack(
+      children: <Widget>[
+        _providerProfile.imgProfile == null
+        ? CachedNetworkImage(
+            imageUrl: widget.user?.imgProfile ?? '',
+            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) => icUser,
+            fit: BoxFit.cover,
+            imageBuilder: (context, imageProvider){
+              return Stack(
+                  children: <Widget>[
+                    Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                                image: imageProvider,
+                                fit: BoxFit.cover
+                            )
+                        )
+                    )
+                  ]
+              );
+            }
+        )
+        : Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                    image: FileImage(_providerProfile.imgProfile),
+                    fit: BoxFit.cover
+                )
+            )
+        ),
+        Positioned(
+            bottom: 0,
+            child: GestureDetector(
+              onTap: () async {
+                final file = await pickImage(false);
+                _providerProfile.imgProfile = file;
+              },
+              child: Container(
+                  width: 100,
+                  height: 39,
+                  decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(50), bottomRight: Radius.circular(50))
+                  ),
+                  child: Center(
+                      child: Text(
+                        'upload',
+                        style: TextStyle(color: Colors.white),
+                      )
+                  )
+              ),
+            )
+        )
+      ],
     );
   }
-
-
 
   Widget _name(){
     return Padding(
@@ -243,18 +283,18 @@ class _EditPageState extends State<EditPage> {
 
   Widget _password(){
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextFormField(
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-              labelText: 'Password',
-              labelStyle: TextStyle(color: Colors.white)
-          ),
-          keyboardType: TextInputType.visiblePassword,
-          obscureText: true,
-          validator: (password) => validateUsername(password) ? null : 'enter password',
-          onSaved: (password) => _newUser.password = password.trim()
-      )
+        padding: const EdgeInsets.only(bottom: 10),
+        child: TextFormField(
+            style: TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+                labelText: 'Password',
+                labelStyle: TextStyle(color: Colors.white)
+            ),
+            keyboardType: TextInputType.visiblePassword,
+            obscureText: true,
+            validator: (password) => validateUsername(password) ? null : 'enter password',
+            onSaved: (password) => _newUser.password = password.trim()
+        )
     );
   }
 
@@ -264,17 +304,11 @@ class _EditPageState extends State<EditPage> {
         child: Container(
             width: double.infinity,
             child: RaisedButton(
-                onPressed: (){
-                  if(_keyForm.currentState.validate()){
-                    _keyForm.currentState.save();
-
-
-                  }
-                },
+                onPressed: update,
                 padding: EdgeInsets.all(10),
                 color: Colors.deepOrange,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(5), bottomLeft: Radius.circular(5)),
+                    borderRadius: BorderRadius.circular(5),
                     side: BorderSide(color: Colors.deepOrange)
                 ),
                 child: Text(
@@ -288,5 +322,35 @@ class _EditPageState extends State<EditPage> {
             )
         )
     );
+  }
+
+
+  void update(){
+    if(_keyForm.currentState.validate()){
+      _keyForm.currentState.save();
+      bool hasUpdate = false;
+
+      if(_newUser.name.isEmpty){
+        _newUser.name = widget.user.name;
+      } else hasUpdate = true;
+
+      if(_newUser.surname.isEmpty){
+        _newUser.surname = widget.user.surname;
+      } else hasUpdate = true;
+
+      if(_providerProfile.imgCover == null){
+        _newUser.imgCover = widget.user.imgCover;
+      } else hasUpdate = true;
+
+      if(_providerProfile.imgProfile == null){
+        _newUser.imgProfile = widget.user.imgProfile;
+      } else hasUpdate = true;
+
+      _newUser.email = widget.user.email;
+
+      if(hasUpdate){
+        _providerProfile.updateUserData(_keyScaffold, _newUser);
+      } else showSnackBar(_keyScaffold, 'There is not any update', true);
+    }
   }
 }

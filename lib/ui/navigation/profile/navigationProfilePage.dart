@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/service/storage.dart';
 import 'package:share_me/ui/navigation/profile/editPage.dart';
 import 'package:share_me/ui/navigation/profile/emailPage.dart';
 import 'package:share_me/ui/navigation/profile/passwordPage.dart';
@@ -36,18 +35,18 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
     return LayoutBuilder(
       builder: (context, constraints){
         return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-                minHeight: constraints.maxHeight
-            ),
-            child: Column(
-                children: <Widget>[
-                  _imageAndName(constraints.maxHeight),
-                  Container(
-                    height: constraints.maxHeight / 2,
-                    child: Center(
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 18, right: 18),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight
+              ),
+              child: Column(
+                  children: <Widget>[
+                    _imageAndName(constraints.maxHeight),
+                    Container(
+                      height: constraints.maxHeight / 2,
+                      child: Center(
                         child: Container(
                             decoration: BoxDecoration(
                                 color: Colors.black54,
@@ -65,12 +64,12 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
                                   _logout()
                                 ]
                             )
-                        ),
-                      )
-                    ),
-                  )
-                ]
-            )
+                        )
+                      ),
+                    )
+                  ]
+              )
+            ),
           ),
         );
       }
@@ -84,21 +83,18 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
         child: Stack(
             alignment: Alignment.topCenter,
             children: <Widget>[
-              GestureDetector(
-                onTap: () async {
-                  final file = await pickImage(false);
-                  if(file != null) Storage.instance.uploadImageCover(_user, file);
-                },
-                child: Container(
-                    height: maxHeight / 3,
-                    width: double.infinity,
+              Container(
+                  height: maxHeight / 3,
+                  width: double.infinity,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
                     child: CachedNetworkImage(
                         imageUrl: _user?.imgCover ?? '',
                         placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                        errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
+                        errorWidget: (context, url, error) => Container(decoration: BoxDecoration(color: Colors.blueGrey, borderRadius: BorderRadius.circular(20))),
                         fit: BoxFit.cover
-                    )
-                ),
+                    ),
+                  )
               ),
               Positioned(
                   bottom: 20,
@@ -119,7 +115,7 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
                           CachedNetworkImage(
                               imageUrl: _user?.imgProfile ?? '',
                               placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                              errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
+                              errorWidget: (context, url, error) => icUser,
                               fit: BoxFit.cover,
                               imageBuilder: (context, imageProvider){
                                 return Container(

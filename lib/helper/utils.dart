@@ -34,6 +34,18 @@ Future<void> showToast(String message, bool isError) async {
   );
 }
 
+void showSnackBar(GlobalKey<ScaffoldState> key, String message, bool isError){
+  final snack = SnackBar(
+      backgroundColor: isError ? Colors.red : Colors.green,
+      duration: Duration(seconds: 2),
+      content: Text(
+          message,
+          style: TextStyle(color: Colors.white)
+      )
+  );
+  key.currentState.showSnackBar(snack);
+}
+
 Future<bool> hasConnection() async {
   try {
     final result = await InternetAddress.lookup('google.com');

@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/provider/providerNavigation.dart';
+import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 import 'package:share_me/ui/navigation/myPosts/navigationMyPostsPage.dart';
 import 'package:share_me/ui/navigation/profile/navigationProfilePage.dart';
+import 'package:share_me/ui/navigation/search/search.dart';
 
 class NavigationPage extends StatefulWidget {
 
@@ -23,6 +25,15 @@ class _NavigationPageState extends State<NavigationPage> {
   void initState() {
     _pages = List();
     _pages.add(NavigationHomePage());
+    _pages.add(
+      MultiProvider(
+        providers: [
+          StreamProvider.value(value: Database.instance.fullNameDataInSearch),
+          StreamProvider.value(value: Database.instance.groupDataInSearch)
+        ],
+        child: SearchPage()
+      )
+    );
     _pages.add(NavigationMyPostsPage());
     _pages.add(NavigationProfilePage());
 
@@ -63,6 +74,7 @@ class _NavigationPageState extends State<NavigationPage> {
         animationDuration: Duration(milliseconds: 600),
         items: <Widget>[
           Icon(Icons.home, size: 30, color: Colors.deepOrange),
+          Icon(Icons.search, size: 30, color: Colors.deepOrange),
           Icon(Icons.list, size: 30, color: Colors.deepOrange),
           Icon(Icons.person, size: 30, color: Colors.deepOrange)
         ],

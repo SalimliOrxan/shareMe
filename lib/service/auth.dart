@@ -16,20 +16,21 @@ class Auth {
 
 
   User _userFromFirebase(FirebaseUser user){
-    return user != null ? User(uid: user.uid, isEmailVerified: user.isEmailVerified) : null;
+    return user != null ? User(uid: user.uid, email: user.email, isEmailVerified: user.isEmailVerified) : null;
   }
 
   Stream<User>get user{
     return _auth.onAuthStateChanged.map(_userFromFirebase);
   }
 
-  Future<User> register(String email, String password) async {
+  Future<User> register(User user) async {
     try {
-      AuthResult authResult     = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      AuthResult authResult     = await _auth.createUserWithEmailAndPassword(email: user.email, password: user.password);
       FirebaseUser firebaseUser = authResult.user;
       await firebaseUser.sendEmailVerification();
-      await Database.instance.createUserData(_userFromFirebase(firebaseUser));
-      return _userFromFirebase(authResult.user);
+      user.uid = firebaseUser.uid;
+      await Database.instance.createUserData(user);
+      return _userFromFirebase(firebaseUser);
     } catch(e) {
       _logger.v(e);
       showToast(e.message, true);
@@ -60,13 +61,9 @@ class Auth {
 
   Future<void> updatePassword(String oldPassword, String newPassword) async {
     try {
-      FirebaseUser user = await _auth.currentUser();
-      AuthCredential credential = EmailAuthProvider.getCredential(
-        email: user.email,
-        password: oldPassword,
-      );
-      AuthResult authResult = await user.reauthenticateWithCredential(credential);
-      if(authResult != null){
+      bool access = await hasAccess(oldPassword);
+      if(access){
+        FirebaseUser user = await _auth.currentUser();
         await user.updatePassword(newPassword);
         showToast('Password has been updated successfully', false);
       }
@@ -78,19 +75,31 @@ class Auth {
 
   Future<void> updateEmail(String email, String password) async {
     try {
-      FirebaseUser user = await _auth.currentUser();
-      AuthCredential credential = EmailAuthProvider.getCredential(
-        email: user.email,
-        password: password,
-      );
-      AuthResult authResult = await user.reauthenticateWithCredential(credential);
-      if(authResult != null){
+      bool access = await hasAccess(password);
+      if(access){
+        FirebaseUser user = await _auth.currentUser();
         await user.updateEmail(email);
         showToast('Email has been updated successfully', false);
       }
     } catch(e) {
       _logger.v(e);
       showToast(e.message, true);
+    }
+  }
+
+  Future<bool> hasAccess(String password) async {
+    try {
+      FirebaseUser user = await _auth.currentUser();
+      AuthCredential credential = EmailAuthProvider.getCredential(
+        email: user.email,
+        password: password,
+      );
+      AuthResult authResult = await user.reauthenticateWithCredential(credential);
+      return authResult != null;
+    } catch(e) {
+      _logger.v(e);
+      showToast(e.message, true);
+      return false;
     }
   }
 

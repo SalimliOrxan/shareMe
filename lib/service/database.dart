@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_me/model/fullNameModel.dart';
+import 'package:share_me/model/groupModel.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
 
@@ -7,12 +9,14 @@ class Database {
   Database._privateConstructor();
   static final Database instance = Database._privateConstructor();
 
-  final CollectionReference _userCollection = Firestore.instance.collection('users');
+  final CollectionReference _collectionUsers  = Firestore.instance.collection('users');
+  final CollectionReference _collectionSearch = Firestore.instance.collection('search');
   DocumentReference _currentUserRef;
 
 
 
   Future<void>createUserData(User user) async {
+    _currentUserRef = _collectionUsers.document(user.uid);
     return await _currentUserRef.setData(user.toMap());
   }
 
@@ -20,29 +24,31 @@ class Database {
     return await _currentUserRef.updateData(user.toMap());
   }
 
-
-  User _userFromSnapshot(DocumentSnapshot snapshot){
-    return User.fromMap(snapshot);
-  }
-
   Stream<User>get currentUserData{
-    _currentUserRef = _userCollection.document(Auth.instance.uid);
-    return _currentUserRef.snapshots().map(_userFromSnapshot);
+    _currentUserRef = _collectionUsers.document(Auth.instance.uid);
+    return _currentUserRef.snapshots().map((data) => User.fromMap(data));
   }
 
+  Stream<FullNameData>get fullNameDataInSearch{
+    DocumentReference docFullName = _collectionSearch.document('fullName');
+    return docFullName.snapshots().map((data) => FullNameData.fromMap(data));
+  }
 
-//  List<User>_userListFromSnapshot(QuerySnapshot snapshot){
-//    return snapshot.documents.map((doc){
-//      return User(
-//          uid:     doc.data['uid'] ?? '',
-//          name:    doc.data['name'] ?? '',
-//          surname: doc.data['surname'] ?? '',
-//          email:   doc.data['email'] ?? ''
-//      );
-//    }).toList();
-//  }
-//
-//  Stream<List<User>>get usersData{
-//    return userCollection.snapshots().map(_userListFromSnapshot);
-//  }
+  Stream<GroupData>get groupDataInSearch{
+    DocumentReference docGroup = _collectionSearch.document('group');
+    return docGroup.snapshots().map((data) => GroupData.fromMap(data));
+  }
+
+  Future<List<User>>get searchedUsers async {
+    List<User>users = [];
+    await _collectionUsers.snapshots().firstWhere((element){
+      element.documents.forEach((element){
+        if(element.documentID == 'wme25DqO13QB4Bi9Nm5RxCwb8u62'){
+          users.add(User.fromMap(element));
+        }
+      });
+      return true;
+    });
+    return users;
+  }
 }

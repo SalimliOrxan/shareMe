@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:share_me/model/user.dart';
+import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
 import 'package:path/path.dart' as path;
 
@@ -15,17 +16,21 @@ class Storage {
   StorageUploadTask _uploadTask;
 
 
-  Future<void> uploadImageCover(User user, File file) async {
-    _uploadTask   = _storage.child('images/imgCover').child('cover${path.extension(file.path)}').putFile(file);
-    _downloadUrl  = await _uploadTask.onComplete;
-    user.imgCover = await _downloadUrl.ref.getDownloadURL();
-    Database.instance.updateUserData(user);
-  }
-
-  Future<void> uploadImageProfile(User user, File file) async {
-    _uploadTask     = _storage.child('images/imgProfile').child('profile${path.extension(file.path)}').putFile(file);
-    _downloadUrl    = await _uploadTask.onComplete;
-    user.imgProfile = await _downloadUrl.ref.getDownloadURL();
-    Database.instance.updateUserData(user);
+  Future<bool> updateUserData(User user, File cover, File profile) async {
+    bool access = await Auth.instance.hasAccess(user.password);
+    if(access){
+      if(cover != null){
+        _uploadTask     = _storage.child('images/imgCover').child('cover${path.extension(cover.path)}').putFile(cover);
+        _downloadUrl    = await _uploadTask.onComplete;
+        user.imgCover   = await _downloadUrl.ref.getDownloadURL();
+      }
+      if(profile != null){
+        _uploadTask     = _storage.child('images/imgProfile').child('profile${path.extension(profile.path)}').putFile(profile);
+        _downloadUrl    = await _uploadTask.onComplete;
+        user.imgProfile = await _downloadUrl.ref.getDownloadURL();
+      }
+      await Database.instance.updateUserData(user);
+    }
+    return access;
   }
 }

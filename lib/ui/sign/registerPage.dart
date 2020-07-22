@@ -165,7 +165,7 @@ class _RegisterPageState extends State<RegisterPage> {
             return validatePassword(password) ? null : 'password is weak';
           },
           onSaved: (password) => _user.password = password.trim()
-      ),
+      )
     );
   }
 
@@ -223,9 +223,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
       bool isOpen = false;
 
-      Auth.instance.register(_user.email, _user.password).then((user) async {
+      Auth.instance.register(_user).then((user) async {
         if(user != null){
-          _timer = Timer.periodic(Duration(seconds: 5), (timer) async {
+          _timer = Timer.periodic(Duration(seconds: 3), (timer) async {
             await FirebaseAuth.instance.currentUser()..reload();
             var user = await FirebaseAuth.instance.currentUser();
             if(user.isEmailVerified){

@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/provider/providerFab.dart';
 import 'package:share_me/provider/providerNavigationHome.dart';
+import 'package:share_me/provider/providerProfile.dart';
+import 'package:share_me/provider/providerSearch.dart';
 import 'package:share_me/service/auth.dart';
 import 'package:share_me/ui/detector.dart';
 
@@ -19,7 +21,9 @@ void main(){
               StreamProvider.value(value: Auth.instance.user),
               ChangeNotifierProvider(create: (_) => ProviderNavigation()),
               ChangeNotifierProvider(create: (_) => ProviderNavigationHome()),
-              ChangeNotifierProvider(create: (_) => ProviderFab())
+              ChangeNotifierProvider(create: (_) => ProviderFab()),
+              ChangeNotifierProvider(create: (_) => ProviderProfile()),
+              ChangeNotifierProvider(create: (_) => ProviderSearch())
             ],
             child: MyApp()
         )

@@ -59,8 +59,8 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         controller: _refreshController,
         onRefresh: _onRefresh,
         header: ClassicHeader(),
-        child: _cards(),
-      ),
+        child: _cards()
+      )
     );
   }
 
@@ -504,15 +504,24 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         context: context,
         expand: true,
         builder: (context, scrollController){
-          return Scaffold(
-            backgroundColor: colorApp,
-            body: Padding(
-              padding: EdgeInsets.fromLTRB(18, 18, 18, 5),
-              child: Stack(
-                  children: <Widget>[
-                    _commentsWritten(scrollController),
-                    _commentWriteYour()
-                  ]
+          return Align(
+            alignment: Alignment.bottomCenter,
+            child: FractionallySizedBox(
+              heightFactor: 0.9,
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                child: Scaffold(
+                  backgroundColor: colorApp,
+                  body: Padding(
+                    padding: EdgeInsets.fromLTRB(18, 18, 18, 5),
+                    child: Stack(
+                        children: <Widget>[
+                          _commentsWritten(scrollController),
+                          _commentWriteYour()
+                        ]
+                    ),
+                  ),
+                ),
               ),
             ),
           );

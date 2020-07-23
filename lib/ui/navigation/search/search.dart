@@ -1,34 +1,31 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/model/fullNameModel.dart';
-import 'package:share_me/model/groupModel.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerSearch.dart';
+import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
+import 'package:share_me/ui/navigation/search/searchResult.dart';
 
-class SearchPage extends StatefulWidget {
+class NavigationSearchPage extends StatefulWidget {
 
   @override
-  _SearchPageState createState() => _SearchPageState();
+  _NavigationSearchPageState createState() => _NavigationSearchPageState();
 }
 
 
-class _SearchPageState extends State<SearchPage> {
+class _NavigationSearchPageState extends State<NavigationSearchPage> {
 
-  FullNameData   _providerName;
-  GroupData      _providerGroup;
   ProviderSearch _providerSearch;
+  User _me;
   TextEditingController _controllerSearch;
-
 
   @override
   void initState() {
     super.initState();
     _controllerSearch = TextEditingController();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _providerSearch.uids = []);
   }
 
   @override
@@ -39,9 +36,8 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    _providerName   = Provider.of<FullNameData>(context);
-    _providerGroup  = Provider.of<GroupData>(context);
     _providerSearch = Provider.of<ProviderSearch>(context);
+    _me             = Provider.of<User>(context);
 
     return Scaffold(
         backgroundColor: colorApp,
@@ -54,12 +50,7 @@ class _SearchPageState extends State<SearchPage> {
     return SafeArea(
       child: Padding(
           padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-          child: Column(
-              children: <Widget>[
-                _searchField(),
-                _results()
-              ]
-          )
+          child: Center(child: _searchField())
       )
     );
   }
@@ -90,40 +81,26 @@ class _SearchPageState extends State<SearchPage> {
               )
             ),
             GestureDetector(
-                onTap: () async {
-                  List<String>uids = [];
-                  _providerName.fullNames.forEach((key, value){
-                    if(value.toString().toLowerCase().contains(_controllerSearch.text.trim())){
-                      uids.add(key);
-                    }
-                  });
-                  _providerSearch.uids  = uids;
-                  _providerSearch.users = await Database.instance.searchedUsers;
-                },
-                child: Icon(Icons.search, color: Colors.deepOrange, size: 20)
+                onTap: _search,
+                child: _providerSearch.statusSearch
+                    ? Container(height: 20, width: 20, child: CircularProgressIndicator())
+                    : Icon(Icons.search, color: Colors.deepOrange, size: 20)
             )
           ],
         )
     );
   }
 
-  Widget _results(){
-    return Padding(
-      padding: const EdgeInsets.only(top: 20),
-      child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: _providerSearch.users.length,
-          itemBuilder: (context, position){
-            return Container(
-              height: 100,
-              width: 100,
-              child: Card(
-                color: Colors.white,
-                child: Center(child: Text(_providerSearch.users.elementAt(position).name)),
-              ),
-            );
-          }
-      ),
+  void _search() async {
+    Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (_){
+              return StreamProvider.value(
+                  value: Database.instance.searchedUsers(_controllerSearch.text.trim()),
+                  child: SearchResultPage(me: _me)
+              );
+            }
+        )
     );
   }
 }

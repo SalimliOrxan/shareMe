@@ -93,7 +93,7 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
                         placeholder: (context, url) => Center(child: CircularProgressIndicator()),
                         errorWidget: (context, url, error) => Container(decoration: BoxDecoration(color: Colors.blueGrey, borderRadius: BorderRadius.circular(20))),
                         fit: BoxFit.cover
-                    ),
+                    )
                   )
               ),
               Positioned(
@@ -131,7 +131,7 @@ class _NavigationProfilePageState extends State<NavigationProfilePage> {
                                 );
                               }
                           )
-                        ],
+                        ]
                       ),
                       Padding(
                           padding: const EdgeInsets.only(top: 10),

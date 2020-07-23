@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:share_me/model/fullNameModel.dart';
-import 'package:share_me/model/groupModel.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
 
@@ -10,7 +8,6 @@ class Database {
   static final Database instance = Database._privateConstructor();
 
   final CollectionReference _collectionUsers  = Firestore.instance.collection('users');
-  final CollectionReference _collectionSearch = Firestore.instance.collection('search');
   DocumentReference _currentUserRef;
 
 
@@ -24,31 +21,35 @@ class Database {
     return await _currentUserRef.updateData(user.toMap());
   }
 
+  Future<void>updateOtherUser(User user) async {
+    DocumentReference userRef = _collectionUsers.document(user.uid);
+    return await userRef.updateData(user.toMap());
+  }
+
+  Stream<List<User>>usersByUid(List followingRequests){
+    return _collectionUsers.snapshots().map((event){
+      return event.documents.where((doc) => followingRequests.contains(doc.documentID)).map((doc){
+        return User.fromMap(doc)..uid = doc.documentID;
+      }).toList();
+    });
+  }
+
   Stream<User>get currentUserData{
     _currentUserRef = _collectionUsers.document(Auth.instance.uid);
     return _currentUserRef.snapshots().map((data) => User.fromMap(data));
   }
 
-  Stream<FullNameData>get fullNameDataInSearch{
-    DocumentReference docFullName = _collectionSearch.document('fullName');
-    return docFullName.snapshots().map((data) => FullNameData.fromMap(data));
-  }
+  Stream<List<User>>searchedUsers(String word){
+    var strFrontCode = word.substring(0, word.length - 1);
+    var strEndCode   = word.substring(word.length - 1, word.length);
+    var endCode      = strFrontCode + String.fromCharCode(strEndCode.codeUnitAt(0) + 1);
 
-  Stream<GroupData>get groupDataInSearch{
-    DocumentReference docGroup = _collectionSearch.document('group');
-    return docGroup.snapshots().map((data) => GroupData.fromMap(data));
-  }
-
-  Future<List<User>>get searchedUsers async {
-    List<User>users = [];
-    await _collectionUsers.snapshots().firstWhere((element){
-      element.documents.forEach((element){
-        if(element.documentID == 'wme25DqO13QB4Bi9Nm5RxCwb8u62'){
-          users.add(User.fromMap(element));
-        }
-      });
-      return true;
+    return _collectionUsers.where('fullName', isGreaterThanOrEqualTo: word).where('fullName', isLessThan: endCode)
+        .snapshots()
+        .map((event){
+      return event.documents.where((doc) => doc.documentID != Auth.instance.uid).map((doc){
+        return User.fromMap(doc)..uid = doc.documentID;
+      }).toList();
     });
-    return users;
   }
 }

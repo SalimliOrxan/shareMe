@@ -37,9 +37,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         title: 'Share Me',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          canvasColor: Colors.transparent
+            primarySwatch: Colors.blue,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+            canvasColor: Colors.transparent
         ),
         home: Detector()
     );

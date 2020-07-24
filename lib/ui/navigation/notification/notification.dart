@@ -18,12 +18,12 @@ class NavigationNotificationPage extends StatefulWidget {
 class _NavigationNotificationState extends State<NavigationNotificationPage> {
 
   List<User> _requestedUsers;
-  User _userData;
+  User _me;
 
   @override
   Widget build(BuildContext context) {
     _requestedUsers = Provider.of<List<User>>(context);
-    _userData       = Provider.of<User>(context);
+    _me             = Provider.of<User>(context);
 
     return Scaffold(
       backgroundColor: colorApp,
@@ -60,7 +60,7 @@ class _NavigationNotificationState extends State<NavigationNotificationPage> {
 
   Widget _bodyNoNotification(){
     return Center(
-        child: Icon(Icons.notifications_off, size: 150, color: Colors.white)
+        child: Icon(Icons.notifications_off, size: 100, color: Colors.deepOrange)
     );
   }
 
@@ -119,9 +119,7 @@ class _NavigationNotificationState extends State<NavigationNotificationPage> {
         IconSlideAction(
           color: Colors.deepOrange,
           icon: Icons.close,
-          onTap: (){
-
-          }
+          onTap: () async => _decline(position)
         ),
         IconSlideAction(
           color: Colors.red,
@@ -144,17 +142,21 @@ class _NavigationNotificationState extends State<NavigationNotificationPage> {
     // add me his friend list
     requestedUser.friends.add(Auth.instance.uid);
     // add him my friend list
-    _userData.friends.add(requestedUser.uid);
+    _me.friends.add(requestedUser.uid);
     // remove follow request my follow list
-    _userData.followRequests.remove(requestedUser.uid);
+    _me.followRequests.remove(requestedUser.uid);
     // update me
-    await Database.instance.updateUserData(_userData);
+    await Database.instance.updateUserData(_me);
     // update him
     await Database.instance.updateOtherUser(requestedUser);
   }
 
-  void _reject(){
-
+  Future<void>_decline(position) async {
+    User requestedUser = _requestedUsers.elementAt(position);
+    // remove follow request my follow list
+    _me.followRequests.remove(requestedUser.uid);
+    // update me
+    await Database.instance.updateUserData(_me);
   }
 
   void _delete(){

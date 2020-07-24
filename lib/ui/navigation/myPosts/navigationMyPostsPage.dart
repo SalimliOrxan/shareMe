@@ -20,6 +20,6 @@ class _NavigationMyPostsPageState extends State<NavigationMyPostsPage> {
 
 
   Widget _body(){
-    return Center(child: Text('My Posts'));
+    return Center(child: Icon(Icons.not_interested, size: 100, color: Colors.deepOrange));
   }
 }

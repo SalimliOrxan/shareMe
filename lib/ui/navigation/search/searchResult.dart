@@ -1,17 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerSearch.dart';
 import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
+import 'package:share_me/ui/navigation/search/searchedProfile.dart';
 
 class SearchResultPage extends StatefulWidget {
-
-  final User me;
-  SearchResultPage({@required this.me});
 
   @override
   _SearchResultState createState() => _SearchResultState();
@@ -22,41 +21,25 @@ class _SearchResultState extends State<SearchResultPage> {
 
   ProviderSearch _providerSearch;
   List<User> _users;
-
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _providerSearch.users = []);
-  }
+  User _me;
 
   @override
   Widget build(BuildContext context) {
     _providerSearch = Provider.of<ProviderSearch>(context);
     _users          = Provider.of<List<User>>(context);
+    _me             = Provider.of<User>(context);
 
     return Scaffold(
         backgroundColor: colorApp,
-        appBar: _appBar(),
         body: _body()
     );
   }
 
 
-  Widget _appBar(){
-    return AppBar(
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      actionsIconTheme: IconThemeData(color: Colors.white),
-    );
-  }
-
   Widget _body(){
-    return SafeArea(
-        child: Padding(
-            padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-            child: _searchResults()
-        )
+    return Padding(
+        padding: EdgeInsets.fromLTRB(18, 0, 18, 10),
+        child: _searchResults()
     );
   }
 
@@ -71,7 +54,10 @@ class _SearchResultState extends State<SearchResultPage> {
             shrinkWrap: true,
             itemCount: _users.length,
             itemBuilder: (context, position){
-              return _item(position);
+              return GestureDetector(
+                  onTap: () => _itemClicked(position),
+                  child: _item(position)
+              );
             }
         )
     );
@@ -115,9 +101,11 @@ class _SearchResultState extends State<SearchResultPage> {
                   'location',
                   style: TextStyle(color: Colors.white)
               ),
-              trailing: IconButton(
-                  onPressed: () => _followOperations(position),
-                  icon: _iconFollow(position)
+              trailing: _didIReceiveFollowRequest(position)
+                  ? _acceptOrDeclineView(position)
+                  : IconButton(
+                  onPressed: () => _providerSearch.followOperations(_me, _users.elementAt(position)),
+                  icon: _getIconFollow(position)
               )
           )
       ),
@@ -125,54 +113,125 @@ class _SearchResultState extends State<SearchResultPage> {
   }
 
   Widget _noResult(){
-    return Center(
-      child: Icon(
-        Icons.find_in_page,
-        size: 100,
-        color: Colors.deepOrange,
-      )
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 60),
+      child: Center(
+        child: Icon(
+          Icons.find_in_page,
+          size: 100,
+          color: Colors.deepOrange
+        )
+      ),
     );
   }
 
-  Widget _iconFollow(position){
+  Widget _getIconFollow(position){
     return _users.elementAt(position).friends.contains(Auth.instance.uid)
         ? Icon(Icons.done, color: Colors.green, size: 30)
         : _users.elementAt(position).followRequests.contains(Auth.instance.uid)
         ? Icon(Icons.update, color: Colors.yellow, size: 30)
         : _providerSearch.statusFollow
         ? Container(width: 20, height: 20, child: CircularProgressIndicator())
-        : Icon(Icons.add, color: Colors.deepOrange, size: 30);
+        : Icon(Icons.person_add, color: Colors.deepOrange, size: 30);
   }
 
-  Future<void> _followOperations(position) async {
-    bool isFollowingDone      = _users.elementAt(position).friends.contains(Auth.instance.uid);
-    bool isFollowingRequested = _users.elementAt(position).followRequests.contains(Auth.instance.uid);
+  Widget _acceptOrDeclineView(position){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          height: 22,
+          width: 120,
+          padding: EdgeInsets.only(right: 10),
+          child: RaisedButton(
+              onPressed: () async => _providerSearch.acceptRequest(_me, _users.elementAt(position)),
+              color: Colors.black,
+              splashColor: Colors.blueGrey,
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                      color: Colors.white
+                  )
+              ),
+              child: Row(
+                  children: <Widget>[
+                    Icon(Icons.done, color: Colors.green, size: 20),
+                    SizedBox(width: 5),
+                    Text(
+                      'Accept',
+                      style: TextStyle(color: Colors.white),
+                    )
+                  ]
+              )
+          )
+        ),
+        SizedBox(height: 11),
+        Container(
+          height: 22,
+          width: 120,
+          padding: EdgeInsets.only(right: 10),
+          child: RaisedButton(
+              onPressed: () async => _providerSearch.declineRequest(_me, _users.elementAt(position)),
+              color: Colors.black,
+              splashColor: Colors.blueGrey,
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                      color: Colors.white
+                  )
+              ),
+              child: Row(
+                  children: <Widget>[
+                    Icon(Icons.close, color: Colors.red, size: 20),
+                    SizedBox(width: 5),
+                    Text(
+                      'Decline',
+                      style: TextStyle(color: Colors.white),
+                    )
+                  ]
+              )
+          )
+        )
+      ],
+    );
+}
 
-    if(isFollowingDone){
-      // stop following
-      _providerSearch.statusFollow = true;
-      User user = _users.elementAt(position);
-      user.friends.remove(Auth.instance.uid);
-      await Database.instance.updateOtherUser(user);
-      widget.me.friends.remove(user.uid);
-      await Database.instance.updateUserData(widget.me);
-      _providerSearch.statusFollow = false;
-    } else {
-      if(isFollowingRequested){
-        // remove following request
-        _providerSearch.statusFollow = true;
-        User user = _users.elementAt(position);
-        user.followRequests.remove(Auth.instance.uid);
-        await Database.instance.updateOtherUser(user);
-        _providerSearch.statusFollow = false;
-      } else {
-        // send following request
-        _providerSearch.statusFollow = true;
-        User user = _users.elementAt(position);
-        user.followRequests.add(Auth.instance.uid);
-        await Database.instance.updateOtherUser(user);
-        _providerSearch.statusFollow = false;
-      }
-    }
+
+  void _itemClicked(int position){
+    showMaterialModalBottomSheet(
+        context: context,
+        expand: true,
+        builder: (context, scrollController){
+          return MultiProvider(
+            providers: [
+              StreamProvider.value(value: Database.instance.searchedUsers(_providerSearch.keySearch)),
+              StreamProvider.value(value: Database.instance.currentUserData)
+            ],
+            child: Align(
+                alignment: Alignment.bottomCenter,
+                child: FractionallySizedBox(
+                    heightFactor: 0.97,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                      child: Scaffold(
+                        backgroundColor: colorApp,
+                        body: Padding(
+                            padding: EdgeInsets.fromLTRB(18, 18, 18, 5),
+                            child: SearchedProfilePage(position: position)
+                        ),
+                      ),
+                    )
+                )
+            )
+          );
+        }
+    );
+  }
+
+  bool _didIReceiveFollowRequest(position){
+    // accept or decline received following request
+    return _me.followRequests.contains(_users.elementAt(position).uid);
   }
 }

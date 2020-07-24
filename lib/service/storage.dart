@@ -20,12 +20,12 @@ class Storage {
     bool access = await Auth.instance.hasAccess(user.password);
     if(access){
       if(cover != null){
-        _uploadTask     = _storage.child('images/imgCover').child('cover${path.extension(cover.path)}').putFile(cover);
+        _uploadTask     = _storage.child('images/imgCover').child('${Auth.instance.uid}${path.extension(cover.path)}').putFile(cover);
         _downloadUrl    = await _uploadTask.onComplete;
         user.imgCover   = await _downloadUrl.ref.getDownloadURL();
       }
       if(profile != null){
-        _uploadTask     = _storage.child('images/imgProfile').child('profile${path.extension(profile.path)}').putFile(profile);
+        _uploadTask     = _storage.child('images/imgProfile').child('${Auth.instance.uid}${path.extension(profile.path)}').putFile(profile);
         _downloadUrl    = await _uploadTask.onComplete;
         user.imgProfile = await _downloadUrl.ref.getDownloadURL();
       }

@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +24,8 @@ class NavigationPage extends StatefulWidget {
 
 class _NavigationPageState extends State<NavigationPage> {
 
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+  StreamSubscription iosSubscription;
   ProviderNavigation _providerNavigation;
   User _userData;
   List<Widget>_pages;
@@ -27,9 +33,17 @@ class _NavigationPageState extends State<NavigationPage> {
   @override
   void initState() {
     super.initState();
+
+    _initFcm();
     WidgetsBinding.instance.addPostFrameCallback((_){
       _providerNavigation.positionPage = 0;
     });
+  }
+
+  @override
+  void dispose() {
+    iosSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -86,5 +100,28 @@ class _NavigationPageState extends State<NavigationPage> {
         )
     );
     _pages.add(NavigationProfilePage());
+  }
+
+  void _initFcm(){
+    if(Platform.isIOS){
+      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
+        // save the token  OR subscribe to a topic here
+      });
+      _fcm.requestNotificationPermissions(IosNotificationSettings());
+    }
+
+    _fcm.getToken().then((token){
+      _fcm.configure(
+        onMessage: (Map<String, dynamic> message) async {
+          print("onMessage: $message");
+        },
+        onLaunch: (Map<String, dynamic> message) async {
+          print("onLaunch: $message");
+        },
+        onResume: (Map<String, dynamic> message) async {
+          print("onResume: $message");
+        },
+      );
+    });
   }
 }

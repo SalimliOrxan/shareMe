@@ -16,7 +16,7 @@ class Detector extends StatelessWidget {
   Widget build(BuildContext context) {
     User user = Provider.of<User>(context);
     final nav = Provider.of<ProviderNavigation>(context);
-    getUid();
+    _getUid();
 
     return user == null
         ? SignPage()
@@ -25,7 +25,7 @@ class Detector extends StatelessWidget {
         : SignPage());
   }
 
-  Future<void>getUid() async {
+  Future<void>_getUid() async {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
     Auth.instance.uid = user?.uid;
   }

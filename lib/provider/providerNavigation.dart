@@ -2,11 +2,12 @@ import 'package:flutter/cupertino.dart';
 
 class ProviderNavigation with ChangeNotifier {
 
-  int _positionPage   = 0;
-  bool _isVerified    = false;
-  String _status      = 'Verification email has been sent';
-  String _time        = '60';
-  bool _visibleButton = true;
+  int _positionPage      = 0;
+  bool _isVerified       = false;
+  String _status         = 'Verification email has been sent';
+  String _time           = '60';
+  bool _visibleButton    = true;
+  bool _isFcmInitialised = false;
 
 
 
@@ -46,6 +47,14 @@ class ProviderNavigation with ChangeNotifier {
 
   set visibleButton(bool value) {
     _visibleButton = value;
+    notifyListeners();
+  }
+
+
+  bool get isFcmInitialised => _isFcmInitialised;
+
+  set isFcmInitialised(bool value) {
+    _isFcmInitialised = value;
     notifyListeners();
   }
 }

@@ -209,9 +209,9 @@ Future<void> showExitDialog(BuildContext context) async {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5)
               ),
-              color: Colors.deepOrange,
+              color: Colors.deepOrange
             )
-          ],
+          ]
         );
       }
   );

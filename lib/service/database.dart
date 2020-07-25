@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_me/model/targetUser.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
 
@@ -7,8 +8,9 @@ class Database {
   Database._privateConstructor();
   static final Database instance = Database._privateConstructor();
 
-  final CollectionReference _collectionUsers  = Firestore.instance.collection('users');
+  final CollectionReference _collectionUsers = Firestore.instance.collection('users');
   DocumentReference _currentUserRef;
+
 
 
 
@@ -26,10 +28,15 @@ class Database {
     return await userRef.updateData(user.toMap());
   }
 
+  Stream<TargetUser>userById(String uid){
+    DocumentReference userRef = _collectionUsers.document(uid);
+    return userRef.snapshots().map((event) => TargetUser.fromMap(event));
+  }
+
   Stream<List<User>>usersByUid(List followingRequests){
     return _collectionUsers.snapshots().map((event){
       return event.documents.where((doc) => followingRequests.contains(doc.documentID)).map((doc){
-        return User.fromMap(doc)..uid = doc.documentID;
+        return User.fromMap(doc);
       }).toList();
     });
   }
@@ -40,15 +47,13 @@ class Database {
   }
 
   Stream<List<User>>searchedUsers(String word){
-    var strFrontCode = word.substring(0, word.length - 1);
-    var strEndCode   = word.substring(word.length - 1, word.length);
-    var endCode      = strFrontCode + String.fromCharCode(strEndCode.codeUnitAt(0) + 1);
+    word = word.toLowerCase();
 
-    return _collectionUsers.where('fullName', isGreaterThanOrEqualTo: word).where('fullName', isLessThan: endCode)
+    return _collectionUsers.where('searchKeys', arrayContains: word)
         .snapshots()
         .map((event){
       return event.documents.where((doc) => doc.documentID != Auth.instance.uid).map((doc){
-        return User.fromMap(doc)..uid = doc.documentID;
+        return User.fromMap(doc);
       }).toList();
     });
   }

@@ -46,7 +46,7 @@ class ProviderSearch with ChangeNotifier {
 
 
 
-  Future<void> followOperations(User me, User requestedUser) async {
+  Future<void>followOperations(User me, User requestedUser) async {
     bool isFollowingDone      = requestedUser.friends.contains(Auth.instance.uid);
     bool isFollowingRequested = requestedUser.followRequests.contains(Auth.instance.uid);
 
@@ -62,12 +62,14 @@ class ProviderSearch with ChangeNotifier {
       if(isFollowingRequested){
         // remove sending following request
         statusFollow = true;
+        requestedUser.countNotification--;
         requestedUser.followRequests.remove(Auth.instance.uid);
         await Database.instance.updateOtherUser(requestedUser);
         statusFollow = false;
       } else {
         // send following request
         statusFollow = true;
+        requestedUser.countNotification++;
         requestedUser.followRequests.add(Auth.instance.uid);
         await Database.instance.updateOtherUser(requestedUser);
         statusFollow = false;
@@ -83,6 +85,8 @@ class ProviderSearch with ChangeNotifier {
     me.friends.add(requestedUser.uid);
     // remove follow request my follow list
     me.followRequests.remove(requestedUser.uid);
+    // decrease count notification
+    me.countNotification--;
     // update me
     await Database.instance.updateUserData(me);
     // update him
@@ -94,6 +98,8 @@ class ProviderSearch with ChangeNotifier {
     statusFollow = true;
     // remove follow request my follow list
     me.followRequests.remove(requestedUser.uid);
+    // decrease count notification
+    me.countNotification--;
     // update me
     await Database.instance.updateUserData(me);
     statusFollow = false;

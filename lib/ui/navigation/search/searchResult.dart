@@ -8,7 +8,7 @@ import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerSearch.dart';
 import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
-import 'package:share_me/ui/navigation/search/searchedProfile.dart';
+import 'package:share_me/ui/navigation/search/targetProfile.dart';
 
 class SearchResultPage extends StatefulWidget {
 
@@ -219,9 +219,9 @@ class _SearchResultState extends State<SearchResultPage> {
                         backgroundColor: colorApp,
                         body: Padding(
                             padding: EdgeInsets.fromLTRB(18, 18, 18, 5),
-                            child: SearchedProfilePage(position: position)
-                        ),
-                      ),
+                            child: TargetProfilePage(position: position, fromSearch: true)
+                        )
+                      )
                     )
                 )
             )

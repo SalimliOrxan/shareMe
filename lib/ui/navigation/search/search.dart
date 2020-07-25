@@ -16,23 +16,15 @@ class NavigationSearchPage extends StatefulWidget {
 class _NavigationSearchPageState extends State<NavigationSearchPage> {
 
   ProviderSearch _providerSearch;
-  TextEditingController _controllerSearch;
 
   @override
   void initState() {
     super.initState();
-    _controllerSearch = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_){
       _providerSearch.keySearch = null;
       _providerSearch.users = [];
     });
-  }
-
-  @override
-  void dispose() {
-    _controllerSearch.dispose();
-    super.dispose();
   }
 
   @override
@@ -54,7 +46,7 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
         backgroundColor: colorApp,
         elevation: 0,
         flexibleSpace: _searchField()
-      ),
+      )
     );
   }
 
@@ -82,27 +74,21 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
             children: <Widget>[
               Expanded(
                 child: TextField(
-                  controller: _controllerSearch,
                   maxLines: 1,
                   keyboardType: TextInputType.text,
+                  onChanged: _search,
                   decoration: InputDecoration(
                       hintText: 'search',
                       hintStyle: TextStyle(color: Colors.deepOrange),
                       border: UnderlineInputBorder(
                           borderSide: BorderSide.none
                       )
-                  ),
+                  )
                 )
-              ),
-              GestureDetector(
-                  onTap: _search,
-                  child: _providerSearch.statusSearch
-                      ? Container(height: 20, width: 20, child: CircularProgressIndicator())
-                      : Icon(Icons.search, color: Colors.deepOrange, size: 20)
               )
-            ],
+            ]
           )
-      ),
+      )
     );
   }
 
@@ -119,7 +105,9 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
     );
   }
 
-  void _search(){
-    _providerSearch.keySearch = _controllerSearch.text.trim();
+
+  void _search(data){
+    if(data.length > 1) _providerSearch.keySearch = data;
+    else _providerSearch.keySearch = null;
   }
 }

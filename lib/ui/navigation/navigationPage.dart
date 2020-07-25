@@ -27,14 +27,13 @@ class _NavigationPageState extends State<NavigationPage> {
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
   ProviderNavigation _providerNavigation;
-  User _userData;
+  User _me;
   List<Widget>_pages;
 
   @override
   void initState() {
     super.initState();
 
-    _initFcm();
     WidgetsBinding.instance.addPostFrameCallback((_){
       _providerNavigation.positionPage = 0;
     });
@@ -49,7 +48,9 @@ class _NavigationPageState extends State<NavigationPage> {
   @override
   Widget build(BuildContext context) {
     _providerNavigation = Provider.of<ProviderNavigation>(context);
-    _userData           = Provider.of<User>(context);
+    _me                 = Provider.of<User>(context);
+
+    _initFcm();
     _initPages();
 
     return Scaffold(
@@ -80,13 +81,29 @@ class _NavigationPageState extends State<NavigationPage> {
           Icon(Icons.home, size: 30, color: Colors.deepOrange),
           Icon(Icons.list, size: 30, color: Colors.deepOrange),
           Icon(Icons.search, size: 30, color: Colors.deepOrange),
-          Icon(Icons.notifications, size: 30, color: Colors.deepOrange),
+          Stack(
+            children: <Widget>[
+              Icon(Icons.notifications, size: 30, color: Colors.deepOrange),
+              Visibility(
+                visible: _me != null && _me.countNotification > 0,
+                child: Positioned(
+                    top: -2,
+                    right: -1,
+                    child: Text(
+                      _me?.countNotification.toString() ?? '0',
+                      style: TextStyle(fontSize: 10, color: Colors.white)
+                    )
+                ),
+              )
+            ],
+          ),
           Icon(Icons.person, size: 30, color: Colors.deepOrange)
         ],
         index: 0,
         onTap: (index) => _providerNavigation.positionPage = index
     );
   }
+
 
   void _initPages(){
     _pages = List();
@@ -95,22 +112,25 @@ class _NavigationPageState extends State<NavigationPage> {
     _pages.add(NavigationSearchPage());
     _pages.add(
         StreamProvider.value(
-            value: Database.instance.usersByUid(_userData?.followRequests ?? []),
+            value: Database.instance.usersByUid(_me?.followRequests ?? []),
             child: NavigationNotificationPage()
         )
     );
     _pages.add(NavigationProfilePage());
   }
 
-  void _initFcm(){
-    if(Platform.isIOS){
-      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
-        // save the token  OR subscribe to a topic here
-      });
-      _fcm.requestNotificationPermissions(IosNotificationSettings());
-    }
+  Future<void> _initFcm() async {
+    // _me?.fcmToken for new registration case after logout
 
-    _fcm.getToken().then((token){
+    if(_me != null && (!_providerNavigation.isFcmInitialised || _me.fcmToken.isEmpty)){
+      if(Platform.isIOS){
+        iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
+          // subscribe to a topic here
+        });
+        _fcm.requestNotificationPermissions(IosNotificationSettings());
+      }
+
+      String token = await _fcm.getToken();
       _fcm.configure(
         onMessage: (Map<String, dynamic> message) async {
           print("onMessage: $message");
@@ -122,6 +142,11 @@ class _NavigationPageState extends State<NavigationPage> {
           print("onResume: $message");
         },
       );
-    });
+
+
+      _me.fcmToken = token;
+      await Database.instance.updateUserData(_me);
+      _providerNavigation.isFcmInitialised = true;
+    }
   }
 }

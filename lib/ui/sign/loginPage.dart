@@ -217,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
     if(_keyForm.currentState.validate()){
       _keyForm.currentState.save();
 
-       showLoading(context);
+      showLoading(context);
 
       Auth.instance.login(_user.email, _user.password).then((user) async {
         if(user != null){

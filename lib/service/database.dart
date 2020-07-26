@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_me/model/post.dart';
 import 'package:share_me/model/targetUser.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
@@ -56,5 +57,13 @@ class Database {
         return User.fromMap(doc);
       }).toList();
     });
+  }
+
+  Stream<List<Post>>get myFriends{
+    return _collectionUsers
+        .document(Auth.instance.uid)
+        .collection('posts')
+        .snapshots()
+        .map((posts) => posts.documents.map((post) => Post.fromMap(post.data)).toList());
   }
 }

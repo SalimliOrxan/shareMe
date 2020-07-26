@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class TargetUser {
 
   String uid;
@@ -15,6 +17,7 @@ class TargetUser {
   List<dynamic> friends = [];
   List<dynamic> followRequests = [];
   List<dynamic> searchKeys = [];
+
 
   TargetUser({
     this.uid,
@@ -45,7 +48,7 @@ class TargetUser {
       'countNotification': countNotification,
       'friends':           friends,
       'followRequests':    followRequests,
-      'searchKeys':         searchKeys
+      'searchKeys':        searchKeys
     };
   }
 

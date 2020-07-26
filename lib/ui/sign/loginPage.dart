@@ -122,13 +122,13 @@ class _LoginPageState extends State<LoginPage> {
                 labelStyle: TextStyle(color: Colors.white)
             ),
             keyboardType: TextInputType.visiblePassword,
-
             obscureText: true,
-            onSaved: (password) => _user.password = password.trim()
+            onSaved: (password) => _user.password = password.trim(),
+            onFieldSubmitted: (_) => _loginApi()
           ),
           _forgot()
         ]
-      ),
+      )
     );
   }
 

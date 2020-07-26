@@ -10,8 +10,8 @@ import 'package:share_me/service/auth.dart';
 
 class TargetProfilePage extends StatefulWidget {
 
-  final position;
-  final fromSearch;
+  final int position;
+  final bool fromSearch;
   TargetProfilePage({@required this.position, @required this.fromSearch});
 
   @override
@@ -32,17 +32,20 @@ class _TargetProfileState extends State<TargetProfilePage> {
 
     return Scaffold(
         backgroundColor: colorApp,
-        body: _body()
+        body: _bodyDetector()
     );
   }
 
 
-  Widget _body(){
+
+  Widget _bodyDetector(){
     return widget.fromSearch
-        ? _users == null || _me == null
-        : finalUser == null || _me == null
-        ? Container()
-        : LayoutBuilder(
+        ? (_users == null || _me == null) ?  Container() : _body()
+        : (finalUser == null || _me == null) ? Container() : _body();
+  }
+
+  Widget _body(){
+    return LayoutBuilder(
         builder: (context, constraints){
           return SingleChildScrollView(
               child: Padding(

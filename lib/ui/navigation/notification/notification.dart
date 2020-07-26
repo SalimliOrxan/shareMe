@@ -59,7 +59,6 @@ class _NavigationNotificationState extends State<NavigationNotificationPage> {
     );
   }
 
-
   Widget _bodyNoNotification(){
     return Center(
         child: Icon(Icons.notifications_off, size: 100, color: Colors.deepOrange)

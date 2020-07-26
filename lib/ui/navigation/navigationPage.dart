@@ -14,6 +14,7 @@ import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 import 'package:share_me/ui/navigation/myPosts/navigationMyPostsPage.dart';
 import 'package:share_me/ui/navigation/notification/notification.dart';
 import 'package:share_me/ui/navigation/profile/navigationProfilePage.dart';
+import 'package:share_me/ui/navigation/search/a.dart';
 import 'package:share_me/ui/navigation/search/search.dart';
 
 class NavigationPage extends StatefulWidget {
@@ -108,7 +109,13 @@ class _NavigationPageState extends State<NavigationPage> {
   void _initPages(){
     _pages = List();
     _pages.add(NavigationHomePage());
-    _pages.add(NavigationMyPostsPage());
+   // _pages.add(NavigationMyPostsPage());
+    _pages.add(
+        StreamProvider.value(
+            value: Database.instance.myFriends,
+            child: A()
+        )
+    );
     _pages.add(NavigationSearchPage());
     _pages.add(
         StreamProvider.value(
@@ -121,7 +128,6 @@ class _NavigationPageState extends State<NavigationPage> {
 
   Future<void> _initFcm() async {
     // _me?.fcmToken for new registration case after logout
-
     if(_me != null && (!_providerNavigation.isFcmInitialised || _me.fcmToken.isEmpty)){
       if(Platform.isIOS){
         iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {

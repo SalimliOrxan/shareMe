@@ -29,6 +29,17 @@ class Database {
     return await userRef.updateData(user.toMap());
   }
 
+  Future<void>createPost(Post post) async {
+    DocumentReference userRef = _collectionUsers.document(Auth.instance.uid).collection('posts').document();
+    post.postId = userRef.documentID;
+    return await userRef.setData(post.toMap());
+  }
+
+  Future<void>updatePost(Post post) async {
+    DocumentReference userRef = _collectionUsers.document(Auth.instance.uid).collection('posts').document(post.postId);
+    return await userRef.updateData(post.toMap());
+  }
+
   Stream<TargetUser>userById(String uid){
     DocumentReference userRef = _collectionUsers.document(uid);
     return userRef.snapshots().map((event) => TargetUser.fromMap(event));

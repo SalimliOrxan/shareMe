@@ -2,12 +2,20 @@ import 'package:flutter/cupertino.dart';
 
 class ProviderNavigationHome with ChangeNotifier {
 
+  List<bool> _visibilityReplies = [];
   bool _hasText       = false;
   bool _keyboardState = false;
   bool _dialVisible   = true;
   int _maxLines = 5;
 
 
+
+  List<bool> get visibilityReplies => _visibilityReplies;
+
+  set visibilityReplies(List<bool> value) {
+    _visibilityReplies = value;
+    notifyListeners();
+  }
 
 
   bool get hasText => _hasText;

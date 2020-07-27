@@ -8,9 +8,12 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/model/post.dart';
 import 'package:share_me/provider/providerNavigationHome.dart';
+import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/fabElements/imageOrVideo.dart';
 import 'package:share_me/ui/fabElements/voice.dart';
+import 'package:share_me/ui/navigation/home/commentSheet.dart';
 
 enum Fab {voice, location, snippet, link, photo}
 
@@ -24,19 +27,23 @@ class NavigationHomePage extends StatefulWidget {
 class _NavigationHomePageState extends State<NavigationHomePage> {
 
   ProviderNavigationHome _providerNavigationHome;
+  List<Post> _posts;
   ScrollController _scrollController;
   RefreshController _refreshController;
+  TextEditingController _controllerMyComment;
 
   @override
   void initState() {
     super.initState();
-    _scrollController  = ScrollController();
-    _refreshController = RefreshController(initialRefresh: false);
+    _scrollController    = ScrollController();
+    _refreshController   = RefreshController(initialRefresh: false);
+    _controllerMyComment = TextEditingController();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _controllerMyComment.dispose();
     super.dispose();
   }
 
@@ -59,7 +66,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         controller: _refreshController,
         onRefresh: _onRefresh,
         header: ClassicHeader(),
-        child: _cards()
+        child:_posts == null ? Container() : _postView()
       )
     );
   }
@@ -123,16 +130,16 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
-  Widget _cards(){
+  Widget _postView(){
     return ListView.builder(
-        itemCount: 9,
+        itemCount: _posts.length,
         itemBuilder: (context, position){
-          return _cardItem(position);
+          return _postItem(position);
         }
     );
   }
 
-  Widget _cardItem(int position){
+  Widget _postItem(int position){
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: Card(
@@ -151,16 +158,16 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                 Row(
                     children: <Widget>[
                       _userIcon(),
-                      _nameAndHour()
+                      _nameAndHour(position)
                     ]
                 ),
-                _title(),
+                _title(position),
                 _containerData(Fab.photo),
                 Container(
                     width: double.infinity,
                     child: Column(
                         children: <Widget>[
-                          _reactions(),
+                          _reactions(position),
                           Padding(
                             padding: const EdgeInsets.only(top: 10, bottom: 0),
                             child: Container(
@@ -169,7 +176,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                                 color: Colors.white
                             ),
                           ),
-                          _buttons()
+                          _buttons(position)
                         ]
                     )
                 )
@@ -190,7 +197,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
-  Widget _nameAndHour(){
+  Widget _nameAndHour(int position){
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -203,7 +210,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
               )
           ),
           Text(
-              'hour',
+              _posts[position].hour.toDate().toString().substring(11 ,16),
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -214,7 +221,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
-  Widget _title(){
+  Widget _title(int positionPost){
     return GestureDetector(
       onTap: (){
         _providerNavigationHome.maxLines = _providerNavigationHome.maxLines == 5 ? 20 : 5;
@@ -222,13 +229,13 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
       child: Padding(
         padding: const EdgeInsets.only(top: 10),
         child: Text(
-            'Title',
+            _posts[positionPost].title,
             maxLines: _providerNavigationHome.maxLines,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
                 color: Colors.white
             )
-        ),
+        )
       ),
     );
   }
@@ -277,7 +284,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
-  Widget _reactions(){
+  Widget _reactions(int positionPost){
     return Row(
         children: <Widget>[
           Padding(
@@ -299,7 +306,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
           Padding(
             padding: const EdgeInsets.only(right: 3),
             child: Text(
-                '3',
+                _posts[positionPost].countComment.toString(),
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 12
@@ -317,7 +324,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
-  Widget _buttons(){
+  Widget _buttons(int position){
     return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -346,9 +353,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
             )
           ),
           GestureDetector(
-            onTap: (){
-              _showCommentsBottomSheet();
-            },
+            onTap: () => _showCommentsBottomSheet(position),
             child: Container(
               color: Colors.transparent,
               padding: EdgeInsets.fromLTRB(5, 10, 5, 5),
@@ -397,133 +402,24 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
-  Widget _commentWriteYour(){
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Colors.blueGrey
-              ),
-              child: TextFormField(
-                  maxLines: 2,
-                  minLines: 1,
-                  keyboardType: TextInputType.multiline,
-                  decoration: InputDecoration(
-                      hintText: 'write comment',
-                      hintStyle: TextStyle(color: Colors.white, fontSize: 12),
-                      contentPadding: EdgeInsets.only(left: 10, right: 10),
-                      border: InputBorder.none
-                  ),
-                  style: TextStyle(
-                      color: Colors.white
-                  ),
-                  onChanged: (data){
-                    _providerNavigationHome.hasText = data.length > 0;
-                  }
-              )
-          ),
-          Visibility(
-              visible: _providerNavigationHome.hasText || _providerNavigationHome.keyboardState,
-              child: Align(
-                  alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                      onTap: () {
 
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10, bottom: 10),
-                        child: Icon(Icons.send, color: Colors.white),
-                      )
-                  )
-              )
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _commentsWritten(ScrollController controller){
-    return Padding(
-      padding: EdgeInsets.only(bottom: _providerNavigationHome.hasText || _providerNavigationHome.keyboardState ? 95 : 52),
-      child: ListView.builder(
-          shrinkWrap: true,
-          controller: controller,
-          itemCount: 30,
-          itemBuilder: (context, position){
-            return _commentItem();
-          }
-      ),
-    );
-  }
-
-  Widget _commentItem(){
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _userIcon(),
-          Expanded(
-              child: Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.blueGrey
-                  ),
-                  child: TextFormField(
-                      initialValue: 'First comment',
-                      enabled: false,
-                      maxLines: null,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(
-                          labelText: 'John Wick',
-                          labelStyle: TextStyle(color: Colors.orangeAccent, fontSize: 15),
-                          contentPadding: EdgeInsets.all(10),
-                          border: InputBorder.none
-                      ),
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white
-                      )
-                  )
-              )
-          )
-        ],
-      ),
-    );
-  }
-
-
-
-  void _showCommentsBottomSheet(){
+  void _showCommentsBottomSheet(int positionPost){
     showMaterialModalBottomSheet (
         context: context,
         expand: true,
         builder: (context, scrollController){
           return Align(
-            alignment: Alignment.bottomCenter,
-            child: FractionallySizedBox(
-              heightFactor: 0.9,
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                child: Scaffold(
-                  backgroundColor: colorApp,
-                  body: Padding(
-                    padding: EdgeInsets.fromLTRB(18, 18, 18, 5),
-                    child: Stack(
-                        children: <Widget>[
-                          _commentsWritten(scrollController),
-                          _commentWriteYour()
-                        ]
-                    ),
-                  ),
-                ),
-              ),
-            ),
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                  heightFactor: 0.96,
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                      child: StreamProvider.value(
+                          value: Database.instance.myFriends,
+                          child: CommentSheet(scrollController: scrollController, positionPost: positionPost)
+                      )
+                  )
+              )
           );
         }
     );
@@ -531,6 +427,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
   void _initParams(){
     _providerNavigationHome = Provider.of<ProviderNavigationHome>(context);
+    _posts                  = Provider.of<List<Post>>(context);
 
     WidgetsBinding.instance.addPostFrameCallback((_){
       _refreshController.position.addListener((){
@@ -546,7 +443,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
           }
         }});
 
-      KeyboardVisibility.onChange.listen((bool visible) {
+      KeyboardVisibility.onChange.listen((bool visible){
         _providerNavigationHome.keyboardState = visible;
       });
     });
@@ -586,9 +483,9 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
               return ClipRRect(
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                 child: FractionallySizedBox(
-                  heightFactor: 0.7,
-                  child: ImageOrVideo(),
-                ),
+                  heightFactor: 0.73,
+                  child: ImageOrVideo()
+                )
               );
             }
         );

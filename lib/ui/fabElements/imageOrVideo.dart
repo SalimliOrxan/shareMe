@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/helper/utils.dart';
+import 'package:share_me/model/post.dart';
 import 'package:share_me/provider/providerFab.dart';
+import 'package:share_me/service/database.dart';
 import 'package:video_player/video_player.dart';
 
 enum FileFormat{IMAGE, VIDEO, VIDEO_RECORD}
@@ -51,7 +53,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
 
 
   Widget _body(){
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(18.0),
       child: Column(
           children: <Widget>[
@@ -196,6 +198,8 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
   }
 
   void post(){
-
+    Post newPost = Post();
+    newPost.title = _controllerTitle.text;
+    Database.instance.createPost(newPost);
   }
 }

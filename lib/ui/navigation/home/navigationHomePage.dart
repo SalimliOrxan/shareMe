@@ -403,27 +403,6 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
   }
 
 
-  void _showCommentsBottomSheet(int positionPost){
-    showMaterialModalBottomSheet (
-        context: context,
-        expand: true,
-        builder: (context, scrollController){
-          return Align(
-              alignment: Alignment.bottomCenter,
-              child: FractionallySizedBox(
-                  heightFactor: 0.96,
-                  child: ClipRRect(
-                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                      child: StreamProvider.value(
-                          value: Database.instance.myFriends,
-                          child: CommentSheet(scrollController: scrollController, positionPost: positionPost)
-                      )
-                  )
-              )
-          );
-        }
-    );
-  }
 
   void _initParams(){
     _providerNavigationHome = Provider.of<ProviderNavigationHome>(context);
@@ -447,6 +426,33 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         _providerNavigationHome.keyboardState = visible;
       });
     });
+  }
+
+  void _showCommentsBottomSheet(int positionPost){
+    showMaterialModalBottomSheet (
+        context: context,
+        expand: true,
+        builder: (context, scrollController){
+          return Align(
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                  heightFactor: 0.96,
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                      child: Scaffold(
+                          body: MultiProvider(
+                              providers: [
+                                StreamProvider.value(value: Database.instance.currentUserData),
+                                StreamProvider.value(value: Database.instance.myFriends)
+                              ],
+                              child: CommentSheet(scrollController: scrollController, positionPost: positionPost)
+                          )
+                      )
+                  )
+              )
+          );
+        }
+    );
   }
 
   void _pressedItemsFAB(Fab status){

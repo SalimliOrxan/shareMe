@@ -4,12 +4,14 @@ class CommentDetail{
   String name;
   String img;
   String comment;
+  bool editable;
 
   CommentDetail({
     this.uid,
     this.name,
     this.img,
-    this.comment
+    this.comment,
+    this.editable = false
   });
 
 
@@ -23,9 +25,10 @@ class CommentDetail{
   }
 
   CommentDetail.fromMap(Map map){
-    this.uid     = map['uid'] ?? '';
-    this.name    = map['name'] ?? '';
-    this.img     = map['img'] ?? '';
-    this.comment = map['comment'] ?? '';
+    this.uid      = map['uid'] ?? '';
+    this.name     = map['name'] ?? '';
+    this.img      = map['img'] ?? '';
+    this.comment  = map['comment'] ?? '';
+    this.editable = false;
   }
 }

@@ -155,27 +155,30 @@ class _TargetProfileState extends State<TargetProfilePage> {
   }
 
   Widget _followButton(){
-    return Container(
-        height: 40,
-        child: RaisedButton(
-            onPressed: () => _providerSearch.followOperations(_me, User.fromMap(finalUser.toMap())),
-            color: Colors.black,
-            splashColor: Colors.blueGrey,
-            elevation: 5,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)
-            ),
-            child: Row(
-                children: <Widget>[
-                  _getIconFollow(widget.position),
-                  SizedBox(width: 5),
-                  Text(
-                    _getTextFollow(widget.position),
-                    style: TextStyle(color: Colors.white),
-                  )
-                ]
-            )
-        )
+    return Visibility(
+      visible: finalUser.uid != _me.uid,
+      child: Container(
+          height: 40,
+          child: RaisedButton(
+              onPressed: () => _providerSearch.followOperations(_me, User.fromMap(finalUser.toMap())),
+              color: Colors.black,
+              splashColor: Colors.blueGrey,
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)
+              ),
+              child: Row(
+                  children: <Widget>[
+                    _getIconFollow(widget.position),
+                    SizedBox(width: 5),
+                    Text(
+                      _getTextFollow(widget.position),
+                      style: TextStyle(color: Colors.white),
+                    )
+                  ]
+              )
+          )
+      ),
     );
   }
 

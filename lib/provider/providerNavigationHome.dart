@@ -1,12 +1,15 @@
 import 'package:flutter/cupertino.dart';
+import 'package:share_me/model/commentDetail.dart';
 
 class ProviderNavigationHome with ChangeNotifier {
 
   List<bool> _visibilityReplies = [];
-  bool _hasText       = false;
-  bool _keyboardState = false;
-  bool _dialVisible   = true;
-  int _maxLines = 5;
+  List<CommentDetail>_comments  = [];
+  bool _hasText                 = false;
+  bool _keyboardState           = false;
+  bool _dialVisible             = true;
+  int _maxLines                 = 5;
+  String _replyTag              = '';
 
 
 
@@ -14,6 +17,14 @@ class ProviderNavigationHome with ChangeNotifier {
 
   set visibilityReplies(List<bool> value) {
     _visibilityReplies = value;
+    notifyListeners();
+  }
+
+
+  List<CommentDetail> get comments => _comments;
+
+  set comments(List<CommentDetail> value) {
+    _comments = value;
     notifyListeners();
   }
 
@@ -46,6 +57,14 @@ class ProviderNavigationHome with ChangeNotifier {
 
   set maxLines(int value) {
     _maxLines = value;
+    notifyListeners();
+  }
+
+
+  String get replyTag => _replyTag;
+
+  set replyTag(String value) {
+    _replyTag = value;
     notifyListeners();
   }
 }

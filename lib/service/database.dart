@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_me/model/comment.dart';
 import 'package:share_me/model/post.dart';
 import 'package:share_me/model/targetUser.dart';
 import 'package:share_me/model/user.dart';
@@ -9,7 +12,9 @@ class Database {
   Database._privateConstructor();
   static final Database instance = Database._privateConstructor();
 
-  final CollectionReference _collectionUsers = Firestore.instance.collection('users');
+  final CollectionReference _collectionUsers    = Firestore.instance.collection('users');
+  final CollectionReference _collectionPosts    = Firestore.instance.collection('posts');
+  final CollectionReference _collectionComments = Firestore.instance.collection('comments');
   DocumentReference _currentUserRef;
 
 
@@ -26,18 +31,29 @@ class Database {
 
   Future<void>updateOtherUser(User user) async {
     DocumentReference userRef = _collectionUsers.document(user.uid);
-    return await userRef.updateData(user.toMap());
+    return await userRef.updateData(user.toMap()..removeWhere((key, value) => value == null));
   }
 
-  Future<void>createPost(Post post) async {
-    DocumentReference userRef = _collectionUsers.document(Auth.instance.uid).collection('posts').document();
-    post.postId = userRef.documentID;
-    return await userRef.setData(post.toMap());
+  Future<String>createPost(Post post) async {
+    DocumentReference docRef = _collectionPosts.document();
+    post.postId = docRef.documentID;
+    await docRef.setData(post.toMap());
+    return post.postId;
   }
 
   Future<void>updatePost(Post post) async {
-    DocumentReference userRef = _collectionUsers.document(Auth.instance.uid).collection('posts').document(post.postId);
-    return await userRef.updateData(post.toMap());
+    DocumentReference docRef = _collectionPosts.document(post.postId);
+    return await docRef.updateData(post.toMap());
+  }
+
+  Future<void>createComments(Comment comment) async {
+    DocumentReference docRef = _collectionComments.document(comment.commentId);
+    return await docRef.setData(comment.toMap());
+  }
+
+  Future<void>updateComments(Comment comment) async {
+    DocumentReference docRef = _collectionComments.document(comment.commentId);
+    return await docRef.updateData(comment.toMap());
   }
 
   Stream<TargetUser>userById(String uid){
@@ -45,9 +61,9 @@ class Database {
     return userRef.snapshots().map((event) => TargetUser.fromMap(event));
   }
 
-  Stream<List<User>>usersByUid(List followingRequests){
+  Stream<List<User>>usersByUid(List uIds){
     return _collectionUsers.snapshots().map((event){
-      return event.documents.where((doc) => followingRequests.contains(doc.documentID)).map((doc){
+      return event.documents.where((doc) => uIds.contains(doc.documentID)).map((doc){
         return User.fromMap(doc);
       }).toList();
     });
@@ -70,11 +86,18 @@ class Database {
     });
   }
 
-  Stream<List<Post>>get myFriends{
-    return _collectionUsers
-        .document(Auth.instance.uid)
-        .collection('posts')
+  Stream<List<Post>>getPosts(List idPosts){
+    return _collectionPosts.snapshots().map((event){
+      return event.documents.where((doc) => idPosts.contains(doc.documentID)).map((doc){
+        return Post.fromMap(doc.data);
+      }).toList();
+    });
+  }
+
+  Stream<Comment>getComments(String idPost){
+    return _collectionComments
+        .document(idPost)
         .snapshots()
-        .map((posts) => posts.documents.map((post) => Post.fromMap(post.data)).toList());
+        .map((comment) => Comment.fromMap(comment.data));
   }
 }

@@ -1,6 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-class TargetUser {
+class TargetUser{
 
   String uid;
   String fcmToken;
@@ -17,7 +15,7 @@ class TargetUser {
   List<dynamic> friends = [];
   List<dynamic> followRequests = [];
   List<dynamic> searchKeys = [];
-
+  List<dynamic> posts = [];
 
   TargetUser({
     this.uid,
@@ -32,7 +30,8 @@ class TargetUser {
     this.countNotification,
     this.friends,
     this.followRequests,
-    this.searchKeys
+    this.searchKeys,
+    this.posts
   });
 
   Map<String, dynamic> toMap(){
@@ -48,7 +47,8 @@ class TargetUser {
       'countNotification': countNotification,
       'friends':           friends,
       'followRequests':    followRequests,
-      'searchKeys':        searchKeys
+      'searchKeys':        searchKeys,
+      'posts':             posts
     };
   }
 
@@ -65,5 +65,6 @@ class TargetUser {
     this.friends           = map['friends'] ?? List<dynamic>();
     this.followRequests    = map['followRequests'] ?? List<dynamic>();
     this.searchKeys        = map['searchKeys'] ?? List<dynamic>();
+    this.posts             = map['posts'] ?? List<dynamic>();
   }
 }

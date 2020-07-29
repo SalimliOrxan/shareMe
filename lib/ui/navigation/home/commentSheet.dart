@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/model/comment.dart';
 import 'package:share_me/model/commentDetail.dart';
 import 'package:share_me/model/post.dart';
 import 'package:share_me/model/user.dart';
@@ -27,15 +28,16 @@ class CommentSheet extends StatefulWidget {
 class CommentSheetState extends State<CommentSheet> {
 
   ProviderNavigationHome _providerNavigationHome;
-  TextEditingController _controllerMyComment, _controllerEditingComment;
-  List<Post> _posts;
-  Post _post;
+  List<Post>_posts;
+  //Post _post;
+  Comment _comments;
   User _me;
+
+  TextEditingController _controllerMyComment, _controllerEditingComment;
   int _positionReply;
   int _selectedCommentPosition;
   String _selectedCommentKey;
   bool _isEditEnable;
-  FocusNode _focusEditingComment;
   int _countComment;
 
 
@@ -48,7 +50,7 @@ class CommentSheetState extends State<CommentSheet> {
     _isEditEnable = false;
     _controllerMyComment = TextEditingController();
     _controllerEditingComment = TextEditingController();
-    _focusEditingComment = FocusNode();
+
     WidgetsBinding.instance.addPostFrameCallback((_){
       _providerNavigationHome.visibilityReplies = [];
       _providerNavigationHome.comments = [];
@@ -59,18 +61,18 @@ class CommentSheetState extends State<CommentSheet> {
   @override
   Widget build(BuildContext context) {
     _providerNavigationHome = Provider.of<ProviderNavigationHome>(context);
-    _posts                  = Provider.of<List<Post>>(context);
     _me                     = Provider.of<User>(context);
+    _comments               = Provider.of<Comment>(context);
 
     return Scaffold(
         backgroundColor: colorApp,
-        body: _posts == null ? Container() : _body()
+        body: _comments == null ? Container() : _body()
     );
   }
 
 
   Widget _body(){
-    _post = _posts[widget.positionPost];
+    // _post = _posts[widget.positionPost];
 
     return Padding(
         padding: EdgeInsets.fromLTRB(18, 0, 18, 5),
@@ -193,14 +195,14 @@ class CommentSheetState extends State<CommentSheet> {
         child: ListView.builder(
             shrinkWrap: true,
             controller: controller,
-            itemCount: _post.commentsForRead.length,
+            itemCount: _comments.commentsForRead.length,
             itemBuilder: (context, positionComment){
-              bool hasReplies = _post.commentsForRead[positionComment].length > 1;
+              bool hasReplies = _comments.commentsForRead[positionComment].length > 1;
               _providerNavigationHome.visibilityReplies.add(hasReplies);
 
               if(_isEditEnable){
                 // comment selected for edit
-                _post.commentsForRead[_selectedCommentPosition][_selectedCommentKey].editable = true;
+                _comments.commentsForRead[_selectedCommentPosition][_selectedCommentKey].editable = true;
               }
 
               return !hasReplies
@@ -208,9 +210,9 @@ class CommentSheetState extends State<CommentSheet> {
                   : ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
-                  itemCount: _post.commentsForRead[positionComment].length,
+                  itemCount: _comments.commentsForRead[positionComment].length,
                   itemBuilder: (context, positionReply){
-                    String keyCommentDetail = _post.commentsForRead[positionComment].keys.elementAt(positionReply);
+                    String keyCommentDetail = _comments.commentsForRead[positionComment].keys.elementAt(positionReply);
 
                     return  positionReply == 0
                         ? _commentItem(positionComment, keyCommentDetail)
@@ -223,7 +225,7 @@ class CommentSheetState extends State<CommentSheet> {
   }
 
   Widget _commentItem(int positionComment, String keyCommentDetail){
-    CommentDetail comment = _post.commentsForRead[positionComment][keyCommentDetail];
+    CommentDetail comment = _comments.commentsForRead[positionComment][keyCommentDetail];
     bool isEditedComment = _isEditEnable && _selectedCommentPosition == positionComment && _selectedCommentKey == keyCommentDetail;
 
     return Padding(
@@ -245,13 +247,12 @@ class CommentSheetState extends State<CommentSheet> {
                       Container(
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
-                              color: Colors.black26
+                              color: isEditedComment ? Colors.blueGrey : Colors.black26
                           ),
                           child: TextFormField(
                               controller: isEditedComment ? _controllerEditingComment : null,
                               initialValue: isEditedComment ? null : comment.comment,
                               enabled: comment.editable,
-                              focusNode: isEditedComment ? _focusEditingComment : null,
                               maxLines: null,
                               keyboardType: TextInputType.multiline,
                               decoration: InputDecoration(
@@ -295,7 +296,7 @@ class CommentSheetState extends State<CommentSheet> {
                         ]
                       ),
                       Visibility(
-                        visible: _providerNavigationHome.visibilityReplies[positionComment] && _post.commentsForRead[positionComment].length - 1 > 0,
+                        visible: _providerNavigationHome.visibilityReplies[positionComment] && _comments.commentsForRead[positionComment].length - 1 > 0,
                         child: Padding(
                             padding: const EdgeInsets.only(left: 5, top: 10),
                             child: InkWell(
@@ -307,7 +308,7 @@ class CommentSheetState extends State<CommentSheet> {
                                       child: Icon(Icons.subdirectory_arrow_right, color: Colors.white, size: 15)
                                     ),
                                     Text(
-                                        '${_post.commentsForRead[positionComment].length - 1} Replies',
+                                        '${_comments.commentsForRead[positionComment].length - 1} Replies',
                                         style: TextStyle(color: Colors.white, fontSize: 11)
                                     )
                                   ]
@@ -325,7 +326,7 @@ class CommentSheetState extends State<CommentSheet> {
   }
 
   Widget _replyItem(int positionComment, String keyCommentDetail){
-    CommentDetail comment = _post.commentsForRead[positionComment][keyCommentDetail];
+    CommentDetail comment = _comments.commentsForRead[positionComment][keyCommentDetail];
     bool isEditedComment = _isEditEnable && _selectedCommentPosition == positionComment && _selectedCommentKey == keyCommentDetail;
 
     return Visibility(
@@ -349,13 +350,12 @@ class CommentSheetState extends State<CommentSheet> {
                         Container(
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(15),
-                                color: Colors.black54
+                                color: isEditedComment ? Colors.blueGrey : Colors.black54
                             ),
                             child: TextFormField(
                                 controller: isEditedComment ? _controllerEditingComment : null,
                                 initialValue: isEditedComment ? null : comment.comment,
                                 enabled: comment.editable,
-                                focusNode: isEditedComment ? _focusEditingComment : null,
                                 maxLines: null,
                                 keyboardType: TextInputType.multiline,
                                 decoration: InputDecoration(
@@ -414,7 +414,7 @@ class CommentSheetState extends State<CommentSheet> {
       child: Padding(
         padding: const EdgeInsets.only(right: 5),
         child: CachedNetworkImage(
-            imageUrl: commentDetail.img ?? '',
+            imageUrl: commentDetail?.img ?? '',
             placeholder: (context, url) => Center(child: CircularProgressIndicator()),
             errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
             fit: BoxFit.cover,
@@ -552,15 +552,15 @@ class CommentSheetState extends State<CommentSheet> {
   }
 
   Future<void>_writeNewComment() async {
-    _post.commentsForWrite = [];
+    _comments.commentsForWrite = [];
     Map<String, dynamic> emptyMap = Map();
 
-    _post.commentsForRead.forEach((map1){
-      int index = _post.commentsForRead.indexOf(map1);
-      _post.commentsForWrite.add(Map<String, dynamic>());
+    _comments.commentsForRead.forEach((map1){
+      int index = _comments.commentsForRead.indexOf(map1);
+      _comments.commentsForWrite.add(Map<String, dynamic>());
 
       map1.forEach((key, map2){
-        _post.commentsForWrite[index][key] = map2.toMap();
+        _comments.commentsForWrite[index][key] = map2.toMap();
       });
     });
 
@@ -571,23 +571,23 @@ class CommentSheetState extends State<CommentSheet> {
     comment.img     = _me.imgProfile;
     comment.comment = _controllerMyComment.text;
     emptyMap['0'] = comment.toMap();
-    _post.commentsForWrite.add(emptyMap);
+    _comments.commentsForWrite.add(emptyMap);
 
-    await Database.instance.updatePost(_post);
+    await Database.instance.updateComments(_comments);
     _controllerMyComment.text = '';
     _providerNavigationHome.hasText = false;
   }
 
   Future<void>_writeReplyComment() async {
-    _post.commentsForWrite = [];
+    _comments.commentsForWrite = [];
     String newKey;
 
-    _post.commentsForRead.forEach((map1){
-      int index = _post.commentsForRead.indexOf(map1);
-      _post.commentsForWrite.add(Map<String, dynamic>());
+    _comments.commentsForRead.forEach((map1){
+      int index = _comments.commentsForRead.indexOf(map1);
+      _comments.commentsForWrite.add(Map<String, dynamic>());
 
       map1.forEach((key, map2){
-        _post.commentsForWrite[index][key] = map2.toMap();
+        _comments.commentsForWrite[index][key] = map2.toMap();
       });
 
       if(index == _positionReply){
@@ -596,16 +596,16 @@ class CommentSheetState extends State<CommentSheet> {
     });
 
     // add new comment
-    Map<String, dynamic> oldComments = _post.commentsForWrite[_positionReply];
+    Map<String, dynamic> oldComments = _comments.commentsForWrite[_positionReply];
     CommentDetail comment = CommentDetail();
     comment.uid     = _me.uid;
     comment.name    = _me.fullName;
     comment.img     = _me.imgProfile;
     comment.comment = _controllerMyComment.text;
     oldComments[newKey] = comment.toMap();
-    _post.commentsForWrite[_positionReply] = oldComments;
+    _comments.commentsForWrite[_positionReply] = oldComments;
 
-    await Database.instance.updatePost(_post);
+    await Database.instance.updateComments(_comments);
     _controllerMyComment.text = '';
     _providerNavigationHome.hasText = false;
   }
@@ -618,61 +618,64 @@ class CommentSheetState extends State<CommentSheet> {
     // for setState at bottomSheet
     _providerNavigationHome.hasText = true;
     _providerNavigationHome.hasText = false;
-    FocusScope.of(context).requestFocus(_focusEditingComment);
   }
 
   Future<void>_finisEditingComment(CommentDetail comment) async {
     if(comment.comment != _controllerEditingComment.text.trim() && _controllerEditingComment.text.isNotEmpty){
-      _post.commentsForWrite = [];
+      _comments.commentsForWrite = [];
 
-      _post.commentsForRead.forEach((map1){
-        int index = _post.commentsForRead.indexOf(map1);
-        _post.commentsForWrite.add(Map<String, dynamic>());
+      _comments.commentsForRead.forEach((map1){
+        int index = _comments.commentsForRead.indexOf(map1);
+        _comments.commentsForWrite.add(Map<String, dynamic>());
 
         map1.forEach((key, map2){
-          if(index == _selectedCommentPosition && _post.commentsForRead[index][key] == comment){
+          if(index == _selectedCommentPosition && _comments.commentsForRead[index][key] == comment){
             // edit comment
             comment.comment = _controllerEditingComment.text.trim();
-            _post.commentsForWrite[index][key] = comment.toMap();
-          } else _post.commentsForWrite[index][key] = map2.toMap();
+            _comments.commentsForWrite[index][key] = comment.toMap();
+          } else _comments.commentsForWrite[index][key] = map2.toMap();
         });
       });
 
+      await Database.instance.updateComments(_comments);
       _isEditEnable = false;
-      await Database.instance.updatePost(_post);
+      comment.editable = false;
+      FocusScope.of(context).unfocus();
     } else {
       _isEditEnable = false;
+      comment.editable = false;
       FocusScope.of(context).unfocus();
     }
   }
 
   Future<void>_deleteComment(CommentDetail comment, bool isReply) async {
-    _post.commentsForWrite = [];
+    _comments.commentsForWrite = [];
 
-    _post.commentsForRead.forEach((map1){
-      int index = _post.commentsForRead.indexOf(map1);
+    _comments.commentsForRead.forEach((map1){
+      int index = _comments.commentsForRead.indexOf(map1);
 
       if(index == _selectedCommentPosition){
         if(isReply){
-          _post.commentsForWrite.add(Map<String, dynamic>());
+          _comments.commentsForWrite.add(Map<String, dynamic>());
 
           map1.forEach((key, map2){
             if(map2 != comment){
               // will add all replies except removed
-              _post.commentsForWrite[index][key] = map2.toMap();
+              _comments.commentsForWrite[index][key] = map2.toMap();
             }
           });
         } //  won't add removed comment in else case
       } else {
-        _post.commentsForWrite.add(Map<String, dynamic>());
+        Map map = Map<String, dynamic>();
         map1.forEach((key, map2){
-          _post.commentsForWrite[index][key] = map2.toMap();
+          map[key] = map2.toMap();
         });
+        _comments.commentsForWrite.add(map);
       }
     });
 
-    await Database.instance.updatePost(_post);
     Navigator.pop(context);
+    await Database.instance.updateComments(_comments);
   }
 
   Future<void>_copyComment(CommentDetail comment) async {

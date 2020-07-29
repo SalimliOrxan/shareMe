@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/helper/utils.dart';
+import 'package:share_me/model/comment.dart';
 import 'package:share_me/model/post.dart';
+import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerFab.dart';
 import 'package:share_me/service/database.dart';
 import 'package:video_player/video_player.dart';
@@ -21,6 +23,8 @@ class ImageOrVideo extends StatefulWidget {
 class _ImageOrVideoState extends State<ImageOrVideo> {
 
   ProviderFab _providerFab;
+  List<User>_friendsData;
+  User _me;
   TextEditingController _controllerTitle;
   FileFormat _fileFormat;
   FlickManager flickManager;
@@ -43,6 +47,8 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
   @override
   Widget build(BuildContext context) {
     _providerFab = Provider.of<ProviderFab>(context);
+    _friendsData = Provider.of<List<User>>(context);
+    _me          = Provider.of<User>(context);
     _initFlickManager();
 
     return Scaffold(
@@ -175,7 +181,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
       child: Container(
         width: double.infinity,
         child: RaisedButton(
-          onPressed: post,
+          onPressed: _post,
           color: Colors.deepOrange,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(5)
@@ -197,9 +203,16 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
     }
   }
 
-  void post(){
+  void _post() async {
     Post newPost = Post();
     newPost.title = _controllerTitle.text;
-    Database.instance.createPost(newPost);
+    String postId = await Database.instance.createPost(newPost);
+
+    for(int i=0; i<_me.friends.length; i++){
+      _friendsData[i].posts.add(postId);
+      await Database.instance.updateOtherUser(_friendsData[i]);
+    }
+    await Database.instance.updateUserData(_me..posts.add(postId));
+    await Database.instance.createComments(Comment()..commentId = postId);
   }
 }

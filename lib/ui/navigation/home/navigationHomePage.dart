@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/model/post.dart';
+import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigationHome.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/fabElements/imageOrVideo.dart';
@@ -28,6 +29,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
   ProviderNavigationHome _providerNavigationHome;
   List<Post> _posts;
+  User _me;
   ScrollController _scrollController;
   RefreshController _refreshController;
   TextEditingController _controllerMyComment;
@@ -210,7 +212,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
               )
           ),
           Text(
-              _posts[position].hour.toDate().toString().substring(11 ,16),
+              _posts[position].date.toDate().toString().substring(11, 16),
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -407,6 +409,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
   void _initParams(){
     _providerNavigationHome = Provider.of<ProviderNavigationHome>(context);
     _posts                  = Provider.of<List<Post>>(context);
+    _me                     = Provider.of<User>(context);
 
     WidgetsBinding.instance.addPostFrameCallback((_){
       _refreshController.position.addListener((){
@@ -443,7 +446,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                           body: MultiProvider(
                               providers: [
                                 StreamProvider.value(value: Database.instance.currentUserData),
-                                StreamProvider.value(value: Database.instance.myFriends)
+                                StreamProvider.value(value: Database.instance.getComments(_posts[positionPost].postId))
                               ],
                               child: CommentSheet(scrollController: scrollController, positionPost: positionPost)
                           )
@@ -490,7 +493,13 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
                 child: FractionallySizedBox(
                   heightFactor: 0.73,
-                  child: ImageOrVideo()
+                  child: MultiProvider(
+                    providers: [
+                      StreamProvider.value(value: Database.instance.usersByUid(_me.friends)),
+                      StreamProvider.value(value: Database.instance.currentUserData)
+                    ],
+                    child: ImageOrVideo()
+                  )
                 )
               );
             }

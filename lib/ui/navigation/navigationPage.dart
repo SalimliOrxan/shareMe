@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/model/post.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/database.dart';
@@ -53,7 +54,7 @@ class _NavigationPageState extends State<NavigationPage> {
     _initFcm();
     _initPages();
 
-    return Scaffold(
+    return _me == null ? Container() : Scaffold(
       backgroundColor: colorApp,
       body: WillPopScope(
         child: _body(),
@@ -67,7 +68,7 @@ class _NavigationPageState extends State<NavigationPage> {
 
   Widget _body(){
     return SafeArea(
-      child: _pages[_providerNavigation.positionPage]
+        child: _pages[_providerNavigation.positionPage]
     );
   }
 
@@ -90,8 +91,8 @@ class _NavigationPageState extends State<NavigationPage> {
                     top: -2,
                     right: -1,
                     child: Text(
-                      _me?.countNotification.toString() ?? '0',
-                      style: TextStyle(fontSize: 10, color: Colors.white)
+                        _me?.countNotification.toString() ?? '0',
+                        style: TextStyle(fontSize: 10, color: Colors.white)
                     )
                 ),
               )
@@ -106,22 +107,24 @@ class _NavigationPageState extends State<NavigationPage> {
 
 
   void _initPages(){
-    _pages = List();
-    _pages.add(
-        StreamProvider.value(
-            value: Database.instance.myFriends,
-            child: NavigationHomePage()
-        )
-    );
-    _pages.add(NavigationMyPostsPage());
-    _pages.add(NavigationSearchPage());
-    _pages.add(
-        StreamProvider.value(
-            value: Database.instance.usersByUid(_me?.followRequests ?? []),
-            child: NavigationNotificationPage()
-        )
-    );
-    _pages.add(NavigationProfilePage());
+    if(_me != null){
+      _pages = List();
+      _pages.add(
+          StreamProvider.value(
+              value: Database.instance.getPosts(_me?.posts),
+              child: NavigationHomePage()
+          )
+      );
+      _pages.add(NavigationMyPostsPage());
+      _pages.add(NavigationSearchPage());
+      _pages.add(
+          StreamProvider.value(
+              value: Database.instance.usersByUid(_me?.followRequests ?? []),
+              child: NavigationNotificationPage()
+          )
+      );
+      _pages.add(NavigationProfilePage());
+    }
   }
 
   Future<void> _initFcm() async {

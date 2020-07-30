@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_me/model/comment.dart';
@@ -6,6 +7,7 @@ import 'package:share_me/model/post.dart';
 import 'package:share_me/model/targetUser.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
+import 'package:share_me/service/storage.dart';
 
 class Database {
 
@@ -34,9 +36,10 @@ class Database {
     return await userRef.updateData(user.toMap()..removeWhere((key, value) => value == null));
   }
 
-  Future<String>createPost(Post post) async {
+  Future<String>createPost(Post post, File file) async {
     DocumentReference docRef = _collectionPosts.document();
     post.postId = docRef.documentID;
+    await Storage.instance.uploadPostFile(post, file);
     await docRef.setData(post.toMap());
     return post.postId;
   }
@@ -44,6 +47,16 @@ class Database {
   Future<void>updatePost(Post post) async {
     DocumentReference docRef = _collectionPosts.document(post.postId);
     return await docRef.updateData(post.toMap());
+  }
+
+  Future<void>deletePostById(Post post) async {
+    DocumentReference postRef = _collectionPosts.document(post.postId);
+    await postRef.delete();
+
+    DocumentReference commentRef = _collectionComments.document(post.postId);
+    await commentRef.delete();
+
+    if(post.fileName.isNotEmpty) await Storage.instance.deletePostFile(post);
   }
 
   Future<void>createComments(Comment comment) async {
@@ -92,6 +105,13 @@ class Database {
         return Post.fromMap(doc.data);
       }).toList();
     });
+  }
+
+  Stream<Post>getPostById(String id){
+    return _collectionPosts
+        .document(id)
+        .snapshots()
+        .map((post) => Post.fromMap(post.data));
   }
 
   Stream<Comment>getComments(String idPost){

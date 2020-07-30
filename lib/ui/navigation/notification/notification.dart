@@ -79,25 +79,27 @@ class _NavigationNotificationState extends State<NavigationNotificationPage> {
               color: Colors.black,
               child: ListTile(
                   contentPadding: EdgeInsets.fromLTRB(10, 0, 0, 10),
-                  leading: CircleAvatar(
-                      radius: 28,
-                      child: CachedNetworkImage(
-                          imageUrl: _requestedUsers.elementAt(position).imgProfile ?? '',
-                          placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                          errorWidget: (context, url, error) => icUser,
-                          fit: BoxFit.cover,
-                          imageBuilder: (context, imageProvider){
-                            return Container(
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    image: DecorationImage(
-                                        image: imageProvider,
-                                        fit: BoxFit.cover
-                                    )
+                  leading: _requestedUsers.elementAt(position).imgProfile.isEmpty
+                      ? Container(width: 40, height: 40, child: icUser)
+                      : CachedNetworkImage(
+                      imageUrl: _requestedUsers.elementAt(position).imgProfile,
+                      placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.none,
+                      imageBuilder: (context, imageProvider){
+                        return Container(
+                            width: 50,
+                            height: 47,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                image: DecorationImage(
+                                    image: imageProvider,
+                                    fit: BoxFit.cover
                                 )
-                            );
-                          }
-                      )
+                            )
+                        );
+                      }
                   ),
                   title: Text(
                       _requestedUsers.elementAt(position).fullName ?? '',

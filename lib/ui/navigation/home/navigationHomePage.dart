@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:share_me/helper/customValues.dart';
@@ -14,7 +13,6 @@ import 'package:share_me/provider/providerNavigationHome.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/fabElements/imageOrVideo.dart';
 import 'package:share_me/ui/fabElements/voice.dart';
-import 'package:share_me/ui/navigation/home/commentSheet.dart';
 
 enum Fab {voice, location, snippet, link, photo}
 
@@ -63,7 +61,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
   Widget _body(){
     return Padding(
-      padding: EdgeInsets.fromLTRB(18, 0, 18, 0),
+      padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
       child: SmartRefresher(
         controller: _refreshController,
         onRefresh: _onRefresh,
@@ -146,7 +144,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
       padding: const EdgeInsets.only(bottom: 15),
       child: Card(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10)
         ),
         color: Colors.black87,
         elevation: 5,
@@ -158,13 +156,19 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Row(
-                    children: <Widget>[
-                      _userIcon(),
-                      _nameAndHour(position)
-                    ]
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Row(
+                        children: <Widget>[
+                          _userIcon(position),
+                          _nameAndHour(position)
+                        ]
+                    ),
+                    _more(position)
+                  ],
                 ),
                 _title(position),
-                _containerData(Fab.photo),
+                _containerData(Fab.photo, position),
                 Container(
                     width: double.infinity,
                     child: Column(
@@ -183,19 +187,40 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                     )
                 )
               ]
-          ),
-        ),
-      ),
+          )
+        )
+      )
     );
   }
 
-  Widget _userIcon(){
+  Widget _userIcon(int position){
     return Padding(
       padding: const EdgeInsets.only(right: 5),
-      child: CircleAvatar(
-        maxRadius: 15,
-        child: Icon(Icons.person),
-      ),
+      child: GestureDetector(
+        onTap: () => _providerNavigationHome.openProfile(context, _posts[position].uid),
+        child: _posts.elementAt(position).userImg.isEmpty
+            ? Container(width: 40, height: 40, child: icUser)
+            : CachedNetworkImage(
+            imageUrl: _posts.elementAt(position).userImg,
+            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.none,
+            imageBuilder: (context, imageProvider){
+              return Container(
+                  width: 40,
+                  height: 38,
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                          image: imageProvider,
+                          fit: BoxFit.cover
+                      )
+                  )
+              );
+            }
+        )
+      )
     );
   }
 
@@ -204,20 +229,23 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-              'name',
+              _posts?.elementAt(position)?.fullName ?? '',
               style: TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold
               )
           ),
-          Text(
-              _posts[position].date.toDate().toString().substring(11, 16),
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold
-              )
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text(
+                _posts[position].date.toDate().toString().substring(0, 16),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold
+                )
+            ),
           )
         ]
     );
@@ -242,7 +270,35 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     );
   }
 
-  Widget _containerData(Fab status){
+  Widget _more(int positionPost){
+    return Visibility(
+      visible: _posts[positionPost].uid == _me.uid,
+      child: Container(
+          height: 50,
+          width: 30,
+          color: Colors.transparent,
+          child: PopupMenuButton(
+              onSelected: (value) => _pressedItemsPopup(value, _posts[positionPost]),
+              color: colorApp,
+              icon: Icon(Icons.more_vert, color: Colors.white),
+              itemBuilder: (BuildContext context){
+                return <PopupMenuEntry<String>>[
+                  PopupMenuItem(
+                      height: 20,
+                      value: 'Delete',
+                      child: Text(
+                          'Delete',
+                          style: TextStyle(fontSize: 12, color: Colors.white)
+                      )
+                  )
+                ];
+              }
+          )
+      )
+    );
+  }
+
+  Widget _containerData(Fab status, int position){
     Widget view = Container();
 
     switch(status){
@@ -256,8 +312,10 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
       case Fab.link:
         break;
       case Fab.photo:
-        view = CachedNetworkImage(
-            imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTHnHamnGAQO6byapKIZIp-6TZNYZksh2x3MQ&usqp=CAU',
+        view = _posts.elementAt(position).fileUrl.isEmpty
+            ? null
+            : CachedNetworkImage(
+            imageUrl: _posts.elementAt(position).fileUrl,
             placeholder: (context, url) => Center(child: CircularProgressIndicator()),
             errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
             fit: BoxFit.cover,
@@ -279,26 +337,28 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
             );
           },
           child: Container(
-              height: 170,
+              height: view == null ? 0 : 170,
               child: view
-          ),
+          )
         )
     );
   }
 
   Widget _reactions(int positionPost){
+    int lengthLikedUsers = _posts[positionPost].likedUsers.length;
+
     return Row(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 3),
             child: Icon(
-              Icons.star,
+              Icons.stars,
               color: Colors.white,
-              size: 17,
+              size: 15,
             ),
           ),
           Text(
-              '100',
+              lengthLikedUsers > 0 ? lengthLikedUsers.toString() : '',
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 12
@@ -327,13 +387,13 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
   }
 
   Widget _buttons(int position){
+    bool hasStar = _posts[position].likedUsers.contains(_me.uid);
+
     return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           GestureDetector(
-            onTap: (){
-
-            },
+            onTap: () => _providerNavigationHome.like(_posts[position]),
             child: Container(
                 color: Colors.transparent,
                 padding: EdgeInsets.fromLTRB(5, 10, 5, 5),
@@ -341,12 +401,12 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                     children: <Widget>[
                       Padding(
                         padding: const EdgeInsets.only(right: 3),
-                        child: Icon(Icons.ac_unit, color: Colors.white, size: 17),
+                        child: Icon(hasStar ? Icons.star : Icons.star_border, color: hasStar ? Colors.blueAccent : Colors.white, size: 17)
                       ),
                       Text(
-                          'Like',
+                          'Star',
                           style: TextStyle(
-                              color: Colors.white,
+                              color: _posts[position].likedUsers.contains(_me.uid) ? Colors.blueAccent : Colors.white,
                               fontSize: 12
                           )
                       )
@@ -355,7 +415,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
             )
           ),
           GestureDetector(
-            onTap: () => _showCommentsBottomSheet(position),
+            onTap: () => _providerNavigationHome.showCommentsBottomSheet(context, _posts[position]),
             child: Container(
               color: Colors.transparent,
               padding: EdgeInsets.fromLTRB(5, 10, 5, 5),
@@ -431,33 +491,6 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     });
   }
 
-  void _showCommentsBottomSheet(int positionPost){
-    showMaterialModalBottomSheet (
-        context: context,
-        expand: true,
-        builder: (context, scrollController){
-          return Align(
-              alignment: Alignment.bottomCenter,
-              child: FractionallySizedBox(
-                  heightFactor: 0.96,
-                  child: ClipRRect(
-                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                      child: Scaffold(
-                          body: MultiProvider(
-                              providers: [
-                                StreamProvider.value(value: Database.instance.currentUserData),
-                                StreamProvider.value(value: Database.instance.getComments(_posts[positionPost].postId))
-                              ],
-                              child: CommentSheet(scrollController: scrollController, positionPost: positionPost)
-                          )
-                      )
-                  )
-              )
-          );
-        }
-    );
-  }
-
   void _pressedItemsFAB(Fab status){
     switch(status){
       case Fab.voice:
@@ -491,8 +524,8 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
             builder: (BuildContext context){
               return ClipRRect(
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                child: FractionallySizedBox(
-                  heightFactor: 0.73,
+                child: Container(
+                  height: 520,
                   child: MultiProvider(
                     providers: [
                       StreamProvider.value(value: Database.instance.usersByUid(_me.friends)),
@@ -504,6 +537,14 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
               );
             }
         );
+        break;
+    }
+  }
+
+  void _pressedItemsPopup(String value, Post post){
+    switch(value){
+      case 'Delete':
+        _providerNavigationHome.deletePost(post);
         break;
     }
   }

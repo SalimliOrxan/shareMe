@@ -1,5 +1,14 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:provider/provider.dart';
+import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/model/commentDetail.dart';
+import 'package:share_me/model/post.dart';
+import 'package:share_me/service/auth.dart';
+import 'package:share_me/service/database.dart';
+import 'package:share_me/ui/navigation/home/commentSheet.dart';
+import 'package:share_me/ui/navigation/search/targetProfile.dart';
 
 class ProviderNavigationHome with ChangeNotifier {
 
@@ -66,5 +75,82 @@ class ProviderNavigationHome with ChangeNotifier {
   set replyTag(String value) {
     _replyTag = value;
     notifyListeners();
+  }
+
+
+
+
+
+
+  void showCommentsBottomSheet(BuildContext context, Post post){
+    showMaterialModalBottomSheet (
+        context: context,
+        expand: true,
+        builder: (context, scrollController){
+          return Align(
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                  heightFactor: 0.96,
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                      child: Scaffold(
+                          body: MultiProvider(
+                              providers: [
+                                StreamProvider.value(value: Database.instance.currentUserData),
+                                StreamProvider.value(value: Database.instance.getPostById(post.postId)),
+                                StreamProvider.value(value: Database.instance.getComments(post.postId))
+                              ],
+                              child: CommentSheet(scrollController: scrollController)
+                          )
+                      )
+                  )
+              )
+          );
+        }
+    );
+  }
+
+  void openProfile(BuildContext context, String uid){
+    showMaterialModalBottomSheet(
+        context: context,
+        expand: true,
+        builder: (context, scrollController){
+          return MultiProvider(
+              providers: [
+                StreamProvider.value(value: Database.instance.userById(uid)),
+                StreamProvider.value(value: Database.instance.currentUserData)
+              ],
+              child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: FractionallySizedBox(
+                      heightFactor: 0.97,
+                      child: ClipRRect(
+                          borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                          child: Scaffold(
+                              backgroundColor: colorApp,
+                              body: Padding(
+                                  padding: EdgeInsets.fromLTRB(18, 18, 18, 5),
+                                  child: TargetProfilePage(position: -1, fromSearch: false)
+                              )
+                          )
+                      )
+                  )
+              )
+          );
+        }
+    );
+  }
+
+  Future<void>like(Post post) async {
+    post.likedUsers.contains(Auth.instance.uid) ? post.likedUsers.remove(Auth.instance.uid) : post.likedUsers.add(Auth.instance.uid);
+    await Database.instance.updatePost(post);
+  }
+
+  void share(){
+
+  }
+
+  Future<void>deletePost(Post post) async {
+    await Database.instance.deletePostById(post);
   }
 }

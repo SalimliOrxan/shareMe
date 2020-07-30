@@ -31,7 +31,7 @@ class ProviderProfile with ChangeNotifier {
 
   Future<void> updateUserData(GlobalKey<ScaffoldState> key, User user) async {
     showLoading(key.currentState.context);
-    bool completed = await Storage.instance.updateUserData(user, imgCover, imgProfile);
+    bool completed = await Storage.instance.uploadUserImages(user, imgCover, imgProfile);
     if(completed){
       Navigator.pop(key.currentState.context);
       Navigator.pop(key.currentState.context);

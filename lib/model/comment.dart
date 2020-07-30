@@ -4,7 +4,7 @@ class Comment{
 
   String commentId;
   List<Map<String, CommentDetail>>commentsForRead;
-  List<dynamic>commentsForWrite = [];
+  List<dynamic>commentsForWrite;
 
 
   Comment({
@@ -36,6 +36,7 @@ class Comment{
       });
     } else this.commentsForRead = List<Map<String, CommentDetail>>();
 
-    this.commentId = map['commentId'] ?? '';
+    this.commentsForWrite = map['comments'] ?? List<dynamic>();
+    this.commentId        = map['commentId'] ?? '';
   }
 }

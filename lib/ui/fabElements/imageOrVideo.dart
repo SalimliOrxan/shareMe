@@ -61,37 +61,42 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
   Widget _body(){
     return Padding(
       padding: const EdgeInsets.all(18.0),
-      child: Column(
-          children: <Widget>[
-            _titleField(),
-            _fileContainer(),
-            _pickButtons(),
-            _postButton()
-          ]
+      child: SingleChildScrollView(
+        child: Column(
+            children: <Widget>[
+              _titleField(),
+              _fileContainer(),
+              _pickButtons(),
+              _postButton()
+            ]
+        ),
       ),
     );
   }
 
   Widget _titleField(){
-    return TextFormField(
-        controller: _controllerTitle,
-        style: TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-            labelText: 'Title',
-            labelStyle: TextStyle(color: Colors.white),
-            enabledBorder: OutlineInputBorder(
+    return Container(
+      padding: EdgeInsets.only(top: 2),
+      child: TextFormField(
+          controller: _controllerTitle,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+              labelText: 'Title',
+              labelStyle: TextStyle(color: Colors.white),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: BorderSide(
+                      color: Colors.blueGrey
+                  )
+              ),
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(
-                    color: Colors.blueGrey
-                )
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-            )
-        ),
-        minLines: 1,
-        maxLines: 3,
-        keyboardType: TextInputType.multiline
+              )
+          ),
+          minLines: 1,
+          maxLines: 3,
+          keyboardType: TextInputType.multiline
+      ),
     );
   }
 
@@ -204,15 +209,24 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
   }
 
   void _post() async {
+    showLoading(context);
+
     Post newPost = Post();
-    newPost.title = _controllerTitle.text;
-    String postId = await Database.instance.createPost(newPost);
+    newPost.uid      = _me.uid;
+    newPost.fullName = _me.fullName;
+    newPost.userImg  = _me.imgProfile;
+    newPost.title    = _controllerTitle.text;
+
+    String postId = await Database.instance.createPost(newPost, _providerFab.file);
+    await Database.instance.createComments(Comment()..commentId = postId);
+    await Database.instance.updateUserData(_me..posts.add(postId));
+
+    Navigator.pop(context);
+    Navigator.pop(context);
 
     for(int i=0; i<_me.friends.length; i++){
       _friendsData[i].posts.add(postId);
       await Database.instance.updateOtherUser(_friendsData[i]);
     }
-    await Database.instance.updateUserData(_me..posts.add(postId));
-    await Database.instance.createComments(Comment()..commentId = postId);
   }
 }

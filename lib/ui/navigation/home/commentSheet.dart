@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/comment.dart';
 import 'package:share_me/model/commentDetail.dart';
 import 'package:share_me/model/post.dart';
@@ -17,8 +18,7 @@ import 'package:share_me/ui/navigation/search/targetProfile.dart';
 class CommentSheet extends StatefulWidget {
 
   final ScrollController scrollController;
-  final int positionPost;
-  CommentSheet({@required this.scrollController, @required this.positionPost});
+  CommentSheet({@required this.scrollController});
 
   @override
   CommentSheetState createState() => CommentSheetState();
@@ -28,8 +28,7 @@ class CommentSheet extends StatefulWidget {
 class CommentSheetState extends State<CommentSheet> {
 
   ProviderNavigationHome _providerNavigationHome;
-  List<Post>_posts;
-  //Post _post;
+  Post _post;
   Comment _comments;
   User _me;
 
@@ -62,6 +61,7 @@ class CommentSheetState extends State<CommentSheet> {
   Widget build(BuildContext context) {
     _providerNavigationHome = Provider.of<ProviderNavigationHome>(context);
     _me                     = Provider.of<User>(context);
+    _post                   = Provider.of<Post>(context);
     _comments               = Provider.of<Comment>(context);
 
     return Scaffold(
@@ -72,8 +72,6 @@ class CommentSheetState extends State<CommentSheet> {
 
 
   Widget _body(){
-    // _post = _posts[widget.positionPost];
-
     return Padding(
         padding: EdgeInsets.fromLTRB(18, 0, 18, 5),
         child: Stack(
@@ -139,9 +137,7 @@ class CommentSheetState extends State<CommentSheet> {
         child: Row(
           children: <Widget>[
             GestureDetector(
-              onTap: (){
-                _providerNavigationHome.replyTag = '';
-              },
+              onTap: () => _providerNavigationHome.replyTag = '',
               child: Padding(
                 padding: const EdgeInsets.only(right: 10),
                 child: Container(
@@ -179,13 +175,15 @@ class CommentSheetState extends State<CommentSheet> {
                 )
               )
             )
-          ],
+          ]
         )
-      ),
+      )
     );
   }
 
   Widget _commentsWritten(ScrollController controller){
+    _countComment = 0;
+
     return Padding(
         padding: EdgeInsets.only(
             bottom: _providerNavigationHome.hasText || _providerNavigationHome.keyboardState
@@ -225,10 +223,12 @@ class CommentSheetState extends State<CommentSheet> {
   }
 
   Widget _commentItem(int positionComment, String keyCommentDetail){
+    _countComment++;
     CommentDetail comment = _comments.commentsForRead[positionComment][keyCommentDetail];
     bool isEditedComment = _isEditEnable && _selectedCommentPosition == positionComment && _selectedCommentKey == keyCommentDetail;
 
     return Padding(
+        key: UniqueKey(),
         padding: const EdgeInsets.only(top: 20),
         child: GestureDetector(
           onLongPress: (){
@@ -326,85 +326,87 @@ class CommentSheetState extends State<CommentSheet> {
   }
 
   Widget _replyItem(int positionComment, String keyCommentDetail){
+    _countComment++;
     CommentDetail comment = _comments.commentsForRead[positionComment][keyCommentDetail];
     bool isEditedComment = _isEditEnable && _selectedCommentPosition == positionComment && _selectedCommentKey == keyCommentDetail;
 
     return Visibility(
-      visible: !_providerNavigationHome.visibilityReplies[positionComment],
-      child: Padding(
-          padding: const EdgeInsets.only(left: 40, top: 15),
-          child: GestureDetector(
-            onLongPress: (){
-              _selectedCommentPosition = positionComment;
-              _selectedCommentKey = keyCommentDetail;
-              _showCommentOptions(comment, true);
-            },
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                _userIcon(comment),
-                Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                color: isEditedComment ? Colors.blueGrey : Colors.black54
-                            ),
-                            child: TextFormField(
-                                controller: isEditedComment ? _controllerEditingComment : null,
-                                initialValue: isEditedComment ? null : comment.comment,
-                                enabled: comment.editable,
-                                maxLines: null,
-                                keyboardType: TextInputType.multiline,
-                                decoration: InputDecoration(
-                                    labelText: comment.name,
-                                    labelStyle: TextStyle(color: Colors.orangeAccent, fontSize: 15),
-                                    contentPadding: EdgeInsets.all(10),
-                                    border: InputBorder.none
-                                ),
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white
-                                )
-                            )
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Padding(
-                                padding: const EdgeInsets.only(left: 5, top: 5),
-                                child: InkWell(
-                                    onTap: () => _showReplyTag(comment, positionComment),
-                                    child: Text(
-                                        'Reply',
-                                        style: TextStyle(color: Colors.white, fontSize: 11)
-                                    )
-                                )
-                            ),
-                            Visibility(
-                              visible: isEditedComment,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(top: 5, right: 5),
-                                  child: InkWell(
-                                      onTap: () => _finisEditingComment(comment),
-                                      child: Text(
-                                          'Finish edit',
-                                          style: TextStyle(color: Colors.white, fontSize: 11)
+        key: UniqueKey(),
+        visible: !_providerNavigationHome.visibilityReplies[positionComment],
+        child: Padding(
+            padding: const EdgeInsets.only(left: 40, top: 15),
+            child: GestureDetector(
+                onLongPress: (){
+                  _selectedCommentPosition = positionComment;
+                  _selectedCommentKey = keyCommentDetail;
+                  _showCommentOptions(comment, true);
+                },
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      _userIcon(comment),
+                      Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Container(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      color: isEditedComment ? Colors.blueGrey : Colors.black54
+                                  ),
+                                  child: TextFormField(
+                                      controller: isEditedComment ? _controllerEditingComment : null,
+                                      initialValue: isEditedComment ? null : comment.comment,
+                                      enabled: comment.editable,
+                                      maxLines: null,
+                                      keyboardType: TextInputType.multiline,
+                                      decoration: InputDecoration(
+                                          labelText: comment.name,
+                                          labelStyle: TextStyle(color: Colors.orangeAccent, fontSize: 15),
+                                          contentPadding: EdgeInsets.all(10),
+                                          border: InputBorder.none
+                                      ),
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white
                                       )
                                   )
+                              ),
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Padding(
+                                        padding: const EdgeInsets.only(left: 5, top: 5),
+                                        child: InkWell(
+                                            onTap: () => _showReplyTag(comment, positionComment),
+                                            child: Text(
+                                                'Reply',
+                                                style: TextStyle(color: Colors.white, fontSize: 11)
+                                            )
+                                        )
+                                    ),
+                                    Visibility(
+                                        visible: isEditedComment,
+                                        child: Padding(
+                                            padding: const EdgeInsets.only(top: 5, right: 5),
+                                            child: InkWell(
+                                                onTap: () => _finisEditingComment(comment),
+                                                child: Text(
+                                                    'Finish edit',
+                                                    style: TextStyle(color: Colors.white, fontSize: 11)
+                                                )
+                                            )
+                                        )
+                                    )
+                                  ]
                               )
-                            )
-                          ]
-                        )
-                      ],
-                    )
+                            ],
+                          )
+                      )
+                    ]
                 )
-              ]
             )
-          )
-      )
+        )
     );
   }
 
@@ -432,84 +434,86 @@ class CommentSheetState extends State<CommentSheet> {
               );
             }
         )
-      ),
+      )
     );
   }
 
   Widget _optionsSheet(CommentDetail comment, bool isMyComment, bool isReply){
-    return Scaffold(
-      backgroundColor: colorApp,
-      body: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          mainAxisAlignment: isMyComment ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
-          children: <Widget>[
-            Visibility(
-              visible: isMyComment,
-              child: GestureDetector(
-                onTap: () => _editComment(comment),
-                child: Container(
-                  width: double.infinity,
-                  color: Colors.transparent,
-                  child: Row(
-                      children: <Widget>[
-                        Icon(Icons.edit, color: Colors.deepOrange, size: 20),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10),
-                          child: Text(
-                            'Edit',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        )
-                      ]
+    return !_isPostAvailable()
+        ? Container()
+        : Scaffold(
+        backgroundColor: colorApp,
+        body: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+                mainAxisAlignment: isMyComment ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
+                children: <Widget>[
+                  Visibility(
+                    visible: isMyComment,
+                    child: GestureDetector(
+                      onTap: () => _editComment(comment),
+                      child: Container(
+                        width: double.infinity,
+                        color: Colors.transparent,
+                        child: Row(
+                            children: <Widget>[
+                              Icon(Icons.edit, color: Colors.deepOrange, size: 20),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10),
+                                child: Text(
+                                  'Edit',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              )
+                            ]
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-            Visibility(
-              visible: isMyComment,
-              child: GestureDetector(
-                onTap: () => _deleteComment(comment, isReply),
-                child: Container(
-                  width: double.infinity,
-                  color: Colors.transparent,
-                  child: Row(
-                      children: <Widget>[
-                        Icon(Icons.delete, color: Colors.deepOrange, size: 20),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10),
-                          child: Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        )
-                      ]
-                  )
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _copyComment(comment),
-              child: Container(
-                width: double.infinity,
-                color: Colors.transparent,
-                child: Row(
-                    children: <Widget>[
-                      Icon(Icons.content_copy, color: Colors.deepOrange, size: 20),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: Text(
-                          'Copy',
-                          style: TextStyle(color: Colors.white)
-                        )
+                  Visibility(
+                    visible: isMyComment,
+                    child: GestureDetector(
+                      onTap: () => _deleteComment(isReply),
+                      child: Container(
+                          width: double.infinity,
+                          color: Colors.transparent,
+                          child: Row(
+                              children: <Widget>[
+                                Icon(Icons.delete, color: Colors.deepOrange, size: 20),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 10),
+                                  child: Text(
+                                    'Delete',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                )
+                              ]
+                          )
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                      onTap: () => _copyComment(comment),
+                      child: Container(
+                          width: double.infinity,
+                          color: Colors.transparent,
+                          child: Row(
+                              children: <Widget>[
+                                Icon(Icons.content_copy, color: Colors.deepOrange, size: 20),
+                                Padding(
+                                    padding: const EdgeInsets.only(left: 10),
+                                    child: Text(
+                                        'Copy',
+                                        style: TextStyle(color: Colors.white)
+                                    )
+                                )
+                              ]
+                          )
                       )
-                    ]
-                )
-              )
+                  )
+                ]
             )
-          ]
         )
-      )
     );
   }
 
@@ -543,8 +547,10 @@ class CommentSheetState extends State<CommentSheet> {
   }
 
   Future<void>_showReplyTag(CommentDetail commentDetail, int positionComment) async {
-    _positionReply = positionComment;
-    _providerNavigationHome.replyTag = commentDetail.name;
+    if(_isPostAvailable()){
+      _positionReply = positionComment;
+      _providerNavigationHome.replyTag = commentDetail.name;
+    }
   }
 
   void _sendComment(){
@@ -552,130 +558,123 @@ class CommentSheetState extends State<CommentSheet> {
   }
 
   Future<void>_writeNewComment() async {
-    _comments.commentsForWrite = [];
-    Map<String, dynamic> emptyMap = Map();
-
-    _comments.commentsForRead.forEach((map1){
-      int index = _comments.commentsForRead.indexOf(map1);
-      _comments.commentsForWrite.add(Map<String, dynamic>());
-
-      map1.forEach((key, map2){
-        _comments.commentsForWrite[index][key] = map2.toMap();
-      });
-    });
-
-    // add new comment
-    CommentDetail comment = CommentDetail();
-    comment.uid     = _me.uid;
-    comment.name    = _me.fullName;
-    comment.img     = _me.imgProfile;
-    comment.comment = _controllerMyComment.text;
-    emptyMap['0'] = comment.toMap();
-    _comments.commentsForWrite.add(emptyMap);
-
-    await Database.instance.updateComments(_comments);
-    _controllerMyComment.text = '';
-    _providerNavigationHome.hasText = false;
-  }
-
-  Future<void>_writeReplyComment() async {
-    _comments.commentsForWrite = [];
-    String newKey;
-
-    _comments.commentsForRead.forEach((map1){
-      int index = _comments.commentsForRead.indexOf(map1);
-      _comments.commentsForWrite.add(Map<String, dynamic>());
-
-      map1.forEach((key, map2){
-        _comments.commentsForWrite[index][key] = map2.toMap();
-      });
-
-      if(index == _positionReply){
-        newKey = (int.parse(map1.keys.last) + 1).toString();
-      }
-    });
-
-    // add new comment
-    Map<String, dynamic> oldComments = _comments.commentsForWrite[_positionReply];
-    CommentDetail comment = CommentDetail();
-    comment.uid     = _me.uid;
-    comment.name    = _me.fullName;
-    comment.img     = _me.imgProfile;
-    comment.comment = _controllerMyComment.text;
-    oldComments[newKey] = comment.toMap();
-    _comments.commentsForWrite[_positionReply] = oldComments;
-
-    await Database.instance.updateComments(_comments);
-    _controllerMyComment.text = '';
-    _providerNavigationHome.hasText = false;
-  }
-
-  Future<void>_editComment(CommentDetail comment) async {
-    _isEditEnable = true;
-    comment.editable = true;
-    _controllerEditingComment.text = comment.comment;
-    Navigator.pop(context);
-    // for setState at bottomSheet
-    _providerNavigationHome.hasText = true;
-    _providerNavigationHome.hasText = false;
-  }
-
-  Future<void>_finisEditingComment(CommentDetail comment) async {
-    if(comment.comment != _controllerEditingComment.text.trim() && _controllerEditingComment.text.isNotEmpty){
+    if(_isPostAvailable()){
       _comments.commentsForWrite = [];
+      Map<String, dynamic> emptyMap = Map();
 
       _comments.commentsForRead.forEach((map1){
         int index = _comments.commentsForRead.indexOf(map1);
         _comments.commentsForWrite.add(Map<String, dynamic>());
 
         map1.forEach((key, map2){
-          if(index == _selectedCommentPosition && _comments.commentsForRead[index][key] == comment){
-            // edit comment
-            comment.comment = _controllerEditingComment.text.trim();
-            _comments.commentsForWrite[index][key] = comment.toMap();
-          } else _comments.commentsForWrite[index][key] = map2.toMap();
+          _comments.commentsForWrite[index][key] = map2.toMap();
         });
       });
 
+      // add new comment
+      CommentDetail comment = CommentDetail();
+      comment.uid     = _me.uid;
+      comment.name    = _me.fullName;
+      comment.img     = _me.imgProfile;
+      comment.comment = _controllerMyComment.text;
+      emptyMap['0'] = comment.toMap();
+      _comments.commentsForWrite.add(emptyMap);
+
       await Database.instance.updateComments(_comments);
-      _isEditEnable = false;
-      comment.editable = false;
-      FocusScope.of(context).unfocus();
-    } else {
-      _isEditEnable = false;
-      comment.editable = false;
-      FocusScope.of(context).unfocus();
+      _controllerMyComment.text = '';
+      _providerNavigationHome.hasText = false;
+
+      _post.countComment = _countComment;
+      await Database.instance.updatePost(_post);
     }
   }
 
-  Future<void>_deleteComment(CommentDetail comment, bool isReply) async {
-    _comments.commentsForWrite = [];
+  Future<void>_writeReplyComment() async {
+    if(_isPostAvailable()){
+      _comments.commentsForWrite = [];
+      String newKey;
 
-    _comments.commentsForRead.forEach((map1){
-      int index = _comments.commentsForRead.indexOf(map1);
+      _comments.commentsForRead.forEach((map1){
+        int index = _comments.commentsForRead.indexOf(map1);
+        _comments.commentsForWrite.add(Map<String, dynamic>());
 
-      if(index == _selectedCommentPosition){
-        if(isReply){
-          _comments.commentsForWrite.add(Map<String, dynamic>());
-
-          map1.forEach((key, map2){
-            if(map2 != comment){
-              // will add all replies except removed
-              _comments.commentsForWrite[index][key] = map2.toMap();
-            }
-          });
-        } //  won't add removed comment in else case
-      } else {
-        Map map = Map<String, dynamic>();
         map1.forEach((key, map2){
-          map[key] = map2.toMap();
+          _comments.commentsForWrite[index][key] = map2.toMap();
         });
-        _comments.commentsForWrite.add(map);
-      }
-    });
 
-    Navigator.pop(context);
-    await Database.instance.updateComments(_comments);
+        if(index == _positionReply){
+          newKey = (int.parse(map1.keys.last) + 1).toString();
+        }
+      });
+
+      // add new comment
+      Map<String, dynamic> oldComments = _comments.commentsForWrite[_positionReply];
+      CommentDetail comment = CommentDetail();
+      comment.uid     = _me.uid;
+      comment.name    = _me.fullName;
+      comment.img     = _me.imgProfile;
+      comment.comment = _controllerMyComment.text;
+      oldComments[newKey] = comment.toMap();
+      _comments.commentsForWrite[_positionReply] = oldComments;
+
+      await Database.instance.updateComments(_comments);
+      _controllerMyComment.text = '';
+      _providerNavigationHome.hasText = false;
+
+      _post.countComment = _countComment;
+      await Database.instance.updatePost(_post);
+    }
+  }
+
+  Future<void>_editComment(CommentDetail comment) async {
+    if(_isPostAvailable()){
+      _isEditEnable = true;
+      comment.editable = true;
+      _controllerEditingComment.text = comment.comment;
+      Navigator.pop(context);
+      // for setState at bottomSheet
+      _providerNavigationHome.hasText = true;
+      _providerNavigationHome.hasText = false;
+    }
+  }
+
+  Future<void>_finisEditingComment(CommentDetail comment) async {
+    if(_isPostAvailable()){
+      if(comment.comment != _controllerEditingComment.text.trim() && _controllerEditingComment.text.isNotEmpty){
+        comment.comment = _controllerEditingComment.text.trim();
+        _comments.commentsForRead[_selectedCommentPosition][_selectedCommentKey]  = comment;
+        _comments.commentsForWrite[_selectedCommentPosition][_selectedCommentKey] = comment.toMap();
+
+        await Database.instance.updateComments(_comments);
+        _isEditEnable = false;
+        comment.editable = false;
+        FocusScope.of(context).unfocus();
+      } else {
+        _isEditEnable = false;
+        comment.editable = false;
+        FocusScope.of(context).unfocus();
+      }
+    }
+  }
+
+  Future<void>_deleteComment(bool isReply) async {
+    if(_isPostAvailable()){
+      isReply
+          ? _post.countComment = _countComment - 1
+          : _post.countComment = _countComment - _comments.commentsForRead.elementAt(_selectedCommentPosition).length;
+
+      isReply
+          ? _comments.commentsForWrite.elementAt(_selectedCommentPosition).remove(_selectedCommentKey)
+          : _comments.commentsForWrite.removeAt(_selectedCommentPosition);
+
+      isReply
+          ? _comments.commentsForRead.elementAt(_selectedCommentPosition).remove(_selectedCommentKey)
+          : _comments.commentsForRead.removeAt(_selectedCommentPosition);
+
+      Navigator.pop(context);
+      await Database.instance.updateComments(_comments);
+      await Database.instance.updatePost(_post);
+    }
   }
 
   Future<void>_copyComment(CommentDetail comment) async {
@@ -721,5 +720,13 @@ class CommentSheetState extends State<CommentSheet> {
           );
         }
     );
+  }
+
+  bool _isPostAvailable(){
+    if(_post == null){
+      showToast('Post had been removed', true);
+      return false;
+    }
+    return true;
   }
 }

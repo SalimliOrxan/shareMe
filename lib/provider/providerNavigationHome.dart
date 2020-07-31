@@ -2,11 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:share/share.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/model/commentDetail.dart';
 import 'package:share_me/model/post.dart';
+import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
+import 'package:share_me/ui/fabElements/imageOrVideo.dart';
+import 'package:share_me/ui/fabElements/voice.dart';
 import 'package:share_me/ui/navigation/home/commentSheet.dart';
 import 'package:share_me/ui/navigation/search/targetProfile.dart';
 
@@ -110,6 +114,40 @@ class ProviderNavigationHome with ChangeNotifier {
     );
   }
 
+  void showAudioSheet(BuildContext context, bool isInsert){
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context){
+          return ClipRRect(
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+              child: VoiceRecorder(isInsert: isInsert)
+          );
+        }
+    );
+  }
+
+  void showPhotoOrVideoSheet(BuildContext context, List friends){
+    showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (BuildContext context){
+          return ClipRRect(
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+              child: Container(
+                  height: 520,
+                  child: MultiProvider(
+                      providers: [
+                        StreamProvider.value(value: Database.instance.usersByUid(friends)),
+                        StreamProvider.value(value: Database.instance.currentUserData)
+                      ],
+                      child: ImageOrVideo()
+                  )
+              )
+          );
+        }
+    );
+  }
+
   void openProfile(BuildContext context, String uid){
     showMaterialModalBottomSheet(
         context: context,
@@ -146,11 +184,26 @@ class ProviderNavigationHome with ChangeNotifier {
     await Database.instance.updatePost(post);
   }
 
-  void share(){
-
+  Future<void>share(String fileUrl) async {
+    await Share.share(fileUrl);
   }
 
   Future<void>deletePost(Post post) async {
     await Database.instance.deletePostById(post);
+  }
+
+  Future<void>hidePost(User me, String postId) async {
+    me.postsHidden.add(postId);
+    await Database.instance.updateUserData(me);
+  }
+
+  Future<void>banPost(User me, String postId) async {
+    me.posts.remove(postId);
+    await Database.instance.updateUserData(me);
+  }
+
+  Future<void>showPost(User me, String postId) async {
+    me.postsHidden.remove(postId);
+    await Database.instance.updateUserData(me);
   }
 }

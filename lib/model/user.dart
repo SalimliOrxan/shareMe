@@ -16,6 +16,8 @@ class User {
   List<dynamic> followRequests = [];
   List<dynamic> searchKeys = [];
   List<dynamic> posts = [];
+  List<dynamic> postsHidden = [];
+  List<dynamic> postsBanned = [];
 
   User({
     this.uid,
@@ -31,7 +33,8 @@ class User {
     this.friends,
     this.followRequests,
     this.searchKeys,
-    this.posts
+    this.posts,
+    this.postsHidden
   });
 
   Map<String, dynamic> toMap(){
@@ -48,7 +51,8 @@ class User {
       'friends':           friends,
       'followRequests':    followRequests,
       'searchKeys':        searchKeys,
-      'posts':             posts
+      'posts':             posts,
+      'postsHidden':       postsHidden
     };
   }
 
@@ -66,5 +70,6 @@ class User {
     this.followRequests    = map['followRequests'] ?? List<dynamic>();
     this.searchKeys        = map['searchKeys'] ?? List<dynamic>();
     this.posts             = map['posts'] ?? List<dynamic>();
+    this.postsHidden       = map['postsHidden'] ?? List<dynamic>();
   }
 }

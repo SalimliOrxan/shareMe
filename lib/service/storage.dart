@@ -7,6 +7,7 @@ import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
 import 'package:path/path.dart' as path;
+import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 
 class Storage {
 
@@ -39,8 +40,28 @@ class Storage {
 
   Future<void> uploadPostFile(Post post, File file) async {
     if(file != null){
+      String fileType = post.fileType;
+      Fab type = Fab.values.firstWhere((e) => e.toString() == fileType);
+
+      switch(type){
+        case Fab.audio:
+          _uploadTask = _storage.child('audio/audioPost/${post.postId}').child('${post.fileName}').putFile(file);
+          break;
+        case Fab.video:
+          _uploadTask = _storage.child('video/videoPost/${post.postId}').child('${post.fileName}').putFile(file);
+          break;
+        case Fab.photo:
+          _uploadTask = _storage.child('images/imgPost/${post.postId}').child('${post.fileName}').putFile(file);
+          break;
+        case Fab.location:
+          break;
+        case Fab.link:
+          break;
+        case Fab.snippet:
+          break;
+      }
+
       post.fileName   = 'postFile${path.extension(file.path)}';
-      _uploadTask     = _storage.child('images/imgPost/${post.postId}').child('${post.fileName}').putFile(file);
       _downloadUrl    = await _uploadTask.onComplete;
       post.fileUrl    = await _downloadUrl.ref.getDownloadURL();
     }

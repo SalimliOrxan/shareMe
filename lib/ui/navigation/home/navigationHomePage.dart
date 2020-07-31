@@ -7,14 +7,13 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/post.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigationHome.dart';
-import 'package:share_me/service/database.dart';
-import 'package:share_me/ui/fabElements/imageOrVideo.dart';
-import 'package:share_me/ui/fabElements/voice.dart';
+import 'package:share_me/ui/navigation/home/videoView.dart';
 
-enum Fab {voice, location, snippet, link, photo}
+enum Fab {audio, location, snippet, link, video, photo}
 
 class NavigationHomePage extends StatefulWidget {
 
@@ -66,7 +65,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         controller: _refreshController,
         onRefresh: _onRefresh,
         header: ClassicHeader(),
-        child:_posts == null ? Container() : _postView()
+        child: _posts == null ? Container() : _postView()
       )
     );
   }
@@ -96,7 +95,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
             backgroundColor: Colors.purple,
             label: 'Voice',
             labelStyle: TextStyle(fontSize: 18.0),
-            onTap: () => _pressedItemsFAB(Fab.voice)
+            onTap: () => _pressedItemsFAB(Fab.audio)
         ),
         SpeedDialChild(
             child: Icon(Icons.add_location),
@@ -134,7 +133,10 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     return ListView.builder(
         itemCount: _posts.length,
         itemBuilder: (context, position){
-          return _postItem(position);
+          String postId = _posts[position].postId;
+          return _me.postsHidden.contains(postId)
+              ? _postHiddenItem(position)
+              :_postItem(position);
         }
     );
   }
@@ -168,7 +170,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                   ],
                 ),
                 _title(position),
-                _containerData(Fab.photo, position),
+                _posts[position].fileUrl.isEmpty ? SizedBox(height: 20) : _containerData(position),
                 Container(
                     width: double.infinity,
                     child: Column(
@@ -180,7 +182,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                                 height: 0.5,
                                 width: double.infinity,
                                 color: Colors.white
-                            ),
+                            )
                           ),
                           _buttons(position)
                         ]
@@ -190,6 +192,43 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
           )
         )
       )
+    );
+  }
+
+  Widget _postHiddenItem(int position){
+    return Card(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10)
+      ),
+      color: Colors.black87,
+      elevation: 5,
+      child: Container(
+        padding: EdgeInsets.all(10),
+        height: 50,
+        width: double.infinity,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              'This post is hidden',
+              style: TextStyle(color: Colors.white)
+            ),
+            InkWell(
+              onTap: () => _providerNavigationHome.showPost(_me, _posts[position].postId),
+              child: Container(
+                height: 30,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                      'show',
+                      style: TextStyle(color: Colors.blueAccent)
+                  ),
+                ),
+              ),
+            )
+          ]
+        )
+      ),
     );
   }
 
@@ -271,39 +310,53 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
   }
 
   Widget _more(int positionPost){
-    return Visibility(
-      visible: _posts[positionPost].uid == _me.uid,
-      child: Container(
-          height: 50,
-          width: 30,
-          color: Colors.transparent,
-          child: PopupMenuButton(
-              onSelected: (value) => _pressedItemsPopup(value, _posts[positionPost]),
-              color: colorApp,
-              icon: Icon(Icons.more_vert, color: Colors.white),
-              itemBuilder: (BuildContext context){
-                return <PopupMenuEntry<String>>[
-                  PopupMenuItem(
-                      height: 20,
-                      value: 'Delete',
-                      child: Text(
-                          'Delete',
-                          style: TextStyle(fontSize: 12, color: Colors.white)
-                      )
-                  )
-                ];
-              }
-          )
-      )
+    return Container(
+      height: 50,
+      width: 30,
+      color: Colors.transparent,
+      child: PopupMenuButton(
+            onSelected: (value) => _pressedItemsPopup(value, _posts[positionPost]),
+            color: colorApp,
+            icon: Icon(Icons.more_vert, color: Colors.white),
+            itemBuilder: (BuildContext context){
+              return <PopupMenuEntry<String>>[
+                _posts[positionPost].uid == _me.uid ? PopupMenuItem(
+                    height: 25,
+                    value: 'Delete',
+                    child: Text(
+                        'Delete',
+                        style: TextStyle(fontSize: 12, color: Colors.white)
+                    )
+                ) : null,
+                PopupMenuItem(
+                    height: 25,
+                    value: 'Hide',
+                    child: Text(
+                        'Hide',
+                        style: TextStyle(fontSize: 12, color: Colors.white)
+                    )
+                ),
+                PopupMenuItem(
+                    height: 25,
+                    value: 'Ban',
+                    child: Text(
+                        'Never see this post',
+                        style: TextStyle(fontSize: 12, color: Colors.white)
+                    )
+                )
+              ];
+            }
+        ),
     );
   }
 
-  Widget _containerData(Fab status, int position){
-    Widget view = Container();
+  Widget _containerData(int position){
+    String fileType = _posts[position].fileType;
+    Fab type = Fab.values.firstWhere((e) => e.toString() == fileType);
+    Widget view;
 
-    switch(status){
-      case Fab.voice:
-
+    switch(type){
+      case Fab.audio:
         break;
       case Fab.location:
         break;
@@ -311,16 +364,13 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         break;
       case Fab.link:
         break;
+      case Fab.video:
+        String url = _posts.elementAt(position).fileUrl;
+        view = url.isEmpty ? null : _videoView(url);
+        break;
       case Fab.photo:
-        view = _posts.elementAt(position).fileUrl.isEmpty
-            ? null
-            : CachedNetworkImage(
-            imageUrl: _posts.elementAt(position).fileUrl,
-            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-            errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
-            fit: BoxFit.cover,
-            filterQuality: FilterQuality.none
-        );
+        String url = _posts.elementAt(position).fileUrl;
+        view = url.isEmpty ? null : _photoView(url);
         break;
     }
 
@@ -328,18 +378,8 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         padding: EdgeInsets.only(top: 20, bottom: 20),
         width: double.infinity,
         child: GestureDetector(
-          onTap: (){
-            showModalBottomSheet(
-                context: context,
-                builder: (BuildContext context){
-                  return VoiceRecorder(isInsert: false);
-                }
-            );
-          },
-          child: Container(
-              height: view == null ? 0 : 170,
-              child: view
-          )
+          onTap: () => showImageDialog(context, _posts.elementAt(position).fileUrl),
+          child: view
         )
     );
   }
@@ -349,38 +389,83 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
     return Row(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(right: 3),
-            child: Icon(
-              Icons.stars,
-              color: Colors.white,
-              size: 15,
+          Visibility(
+            visible: lengthLikedUsers > 0,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 3),
+              child: Icon(
+                Icons.stars,
+                color: Colors.white,
+                size: 15,
+              ),
             ),
           ),
-          Text(
-              lengthLikedUsers > 0 ? lengthLikedUsers.toString() : '',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12
-              )
-          ),
-          Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(right: 3),
+          Visibility(
+            visible: lengthLikedUsers > 0,
             child: Text(
-                _posts[positionPost].countComment.toString(),
+                lengthLikedUsers.toString(),
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 12
                 )
             ),
           ),
-          Text(
-              'Comments',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12
-              )
+          Spacer(),
+          Visibility(
+            visible: _posts[positionPost].countComment > 0,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 3),
+              child: Text(
+                  _posts[positionPost].countComment.toString(),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12
+                  )
+              ),
+            ),
+          ),
+          Visibility(
+            visible: _posts[positionPost].countComment > 0,
+            child: GestureDetector(
+              onTap: () => _providerNavigationHome.showCommentsBottomSheet(context, _posts[positionPost]),
+              child: Text(
+                  _posts[positionPost].countComment == 1 ? 'Comment' : 'Comments',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12
+                  )
+              ),
+            ),
+          ),
+          Visibility(
+            visible: _posts[positionPost].countComment > 0 && _posts[positionPost].countShare > 0,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 5, right: 5),
+              child: Icon(Icons.brightness_1, color: Colors.white, size: 3),
+            ),
+          ),
+          Visibility(
+            visible: _posts[positionPost].countShare > 0,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 3),
+              child: Text(
+                  _posts[positionPost].countShare.toString(),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12
+                  )
+              ),
+            ),
+          ),
+          Visibility(
+            visible: _posts[positionPost].countShare > 0,
+            child: Text(
+                _posts[positionPost].countShare == 1 ? 'Share' : 'Shares',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12
+                )
+            ),
           )
         ]
     );
@@ -437,9 +522,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
             ),
           ),
           GestureDetector(
-            onTap: (){
-
-            },
+            onTap: () => _providerNavigationHome.share(_posts[position].fileUrl),
             child: Container(
               color: Colors.transparent,
               padding: EdgeInsets.fromLTRB(5, 10, 5, 5),
@@ -461,6 +544,23 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
             ),
           )
         ]
+    );
+  }
+
+  Widget _photoView(String fileUrl){
+    return CachedNetworkImage(
+        imageUrl: fileUrl,
+        placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+        errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.none
+    );
+  }
+
+  Widget _videoView(String fileUrl){
+    return AspectRatio(
+        aspectRatio: 4 / 3,
+        child: VideoView(url: fileUrl, file: null)
     );
   }
 
@@ -493,16 +593,8 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
   void _pressedItemsFAB(Fab status){
     switch(status){
-      case Fab.voice:
-        showModalBottomSheet(
-            context: context,
-            builder: (BuildContext context){
-              return ClipRRect(
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                  child: VoiceRecorder(isInsert: true)
-              );
-            }
-        );
+      case Fab.audio:
+        _providerNavigationHome.showAudioSheet(context, true);
         break;
       case Fab.location:
         break;
@@ -517,26 +609,11 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 //            )
 //        );
         break;
+      case Fab.video:
+        _providerNavigationHome.showPhotoOrVideoSheet(context, _me.friends);
+        break;
       case Fab.photo:
-        showModalBottomSheet(
-            isScrollControlled: true,
-            context: context,
-            builder: (BuildContext context){
-              return ClipRRect(
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                child: Container(
-                  height: 520,
-                  child: MultiProvider(
-                    providers: [
-                      StreamProvider.value(value: Database.instance.usersByUid(_me.friends)),
-                      StreamProvider.value(value: Database.instance.currentUserData)
-                    ],
-                    child: ImageOrVideo()
-                  )
-                )
-              );
-            }
-        );
+        _providerNavigationHome.showPhotoOrVideoSheet(context, _me.friends);
         break;
     }
   }
@@ -545,6 +622,12 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     switch(value){
       case 'Delete':
         _providerNavigationHome.deletePost(post);
+        break;
+      case 'Hide':
+        _providerNavigationHome.hidePost(_me, post.postId);
+        break;
+      case 'Ban':
+        _providerNavigationHome.banPost(_me, post.postId);
         break;
     }
   }

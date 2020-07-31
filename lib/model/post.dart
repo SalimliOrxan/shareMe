@@ -9,7 +9,9 @@ class Post{
   String title;
   String fileName;
   String fileUrl;
+  String fileType;
   int countComment;
+  int countShare;
   Timestamp date;
   List<dynamic>likedUsers;
 
@@ -22,7 +24,9 @@ class Post{
     this.title,
     this.fileName,
     this.fileUrl,
+    this.fileType,
     this.countComment,
+    this.countShare,
     this.date,
     this.likedUsers
   });
@@ -36,7 +40,9 @@ class Post{
       'title':        title,
       'fileName':     fileName,
       'fileUrl':      fileUrl,
+      'fileType':     fileType,
       'countComment': countComment,
+      'countShare':   countShare,
       'date':         date ?? Timestamp.now(),
       'likedUsers':   likedUsers
     };
@@ -50,7 +56,9 @@ class Post{
     this.title        = map['title'] ?? '';
     this.fileName     = map['fileName'] ?? '';
     this.fileUrl      = map['fileUrl'] ?? '';
+    this.fileType     = map['fileType'] ?? '';
     this.countComment = map['countComment'] ?? 0;
+    this.countShare   = map['countShare'] ?? 0;
     this.date         = map['date'] ?? Timestamp.now();
     this.likedUsers   = map['likedUsers'] ?? [];
   }

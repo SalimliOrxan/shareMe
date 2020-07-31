@@ -1,4 +1,3 @@
-import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +8,8 @@ import 'package:share_me/model/post.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerFab.dart';
 import 'package:share_me/service/database.dart';
-import 'package:video_player/video_player.dart';
+import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
+import 'package:share_me/ui/navigation/home/videoView.dart';
 
 enum FileFormat{IMAGE, VIDEO, VIDEO_RECORD}
 
@@ -27,7 +27,6 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
   User _me;
   TextEditingController _controllerTitle;
   FileFormat _fileFormat;
-  FlickManager flickManager;
 
   @override
   void initState() {
@@ -40,7 +39,6 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
   @override
   void dispose() {
     _controllerTitle.dispose();
-    flickManager?.dispose();
     super.dispose();
   }
 
@@ -49,7 +47,6 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
     _providerFab = Provider.of<ProviderFab>(context);
     _friendsData = Provider.of<List<User>>(context);
     _me          = Provider.of<User>(context);
-    _initFlickManager();
 
     return Scaffold(
         backgroundColor: colorApp,
@@ -102,19 +99,21 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
 
   Widget _fileContainer(){
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Container(
-          width: double.infinity,
-          height: 250,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              color: Colors.transparent
-          ),
-          child: _providerFab.file == null
-              ? Icon(Icons.image, size: 250, color: Colors.blueGrey)
-              : _fileFormat == FileFormat.IMAGE
-              ? ClipRRect(child: Image.file(_providerFab.file, fit: BoxFit.cover), borderRadius: BorderRadius.circular(5))
-              : ClipRRect(child: FlickVideoPlayer(flickManager: flickManager), borderRadius: BorderRadius.circular(5))
+      padding: const EdgeInsets.only(top: 20),
+      child: AspectRatio(
+        aspectRatio: 4 / 3,
+        child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                color: Colors.transparent
+            ),
+            child: _providerFab.file == null
+                ? Icon(Icons.image, size: 250, color: Colors.blueGrey)
+                : _fileFormat == FileFormat.IMAGE
+                ? ClipRRect(child: Image.file(_providerFab.file, fit: BoxFit.cover), borderRadius: BorderRadius.circular(5))
+                : ClipRRect(borderRadius: BorderRadius.circular(5), child: VideoView(url: null, file: _providerFab.file))
+        ),
       )
     );
   }
@@ -136,7 +135,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
                         _providerFab.file = file;
                       }
                     },
-                    icon: Icon(Icons.image, size: 40, color: Colors.white)
+                    icon: Icon(Icons.image, size: 35, color: Colors.white)
                 ),
                 IconButton(
                     onPressed: () async {
@@ -146,36 +145,42 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
                         _providerFab.file = file;
                       }
                     },
-                    icon: Icon(Icons.camera_alt, size: 40, color: Colors.white)
-                ),
-              ],
+                    icon: Icon(Icons.camera_alt, size: 35, color: Colors.white)
+                )
+              ]
+            ),
+            IconButton(
+                onPressed: _deleteFile,
+                icon: Icon(Icons.delete, size: 35, color: Colors.white)
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 IconButton(
                     onPressed: () async {
+                      _deleteFile();
                       final file = await pickVideo(false);
                       if(file != null){
                         _fileFormat = FileFormat.VIDEO;
                         _providerFab.file = file;
                       }
                     },
-                    icon: Icon(Icons.video_library, size: 40, color: Colors.white)
+                    icon: Icon(Icons.video_library, size: 35, color: Colors.white)
                 ),
                 IconButton(
                     onPressed: () async {
+                      _deleteFile();
                       final file = await pickVideo(true);
                       if(file != null){
                         _fileFormat = FileFormat.VIDEO_RECORD;
                         _providerFab.file = file;
                       }
                     },
-                    icon: Icon(Icons.videocam, size: 40, color: Colors.white)
-                ),
-              ],
+                    icon: Icon(Icons.videocam, size: 35, color: Colors.white)
+                )
+              ]
             )
-          ],
+          ]
         )
     );
   }
@@ -202,12 +207,6 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
 
 
 
-  void _initFlickManager(){
-    if(_fileFormat == FileFormat.VIDEO){
-      flickManager = FlickManager(videoPlayerController: VideoPlayerController.file(_providerFab.file), autoPlay: false);
-    }
-  }
-
   void _post() async {
     showLoading(context);
 
@@ -216,6 +215,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
     newPost.fullName = _me.fullName;
     newPost.userImg  = _me.imgProfile;
     newPost.title    = _controllerTitle.text;
+    newPost.fileType = _fileFormat == FileFormat.IMAGE ? Fab.photo.toString() : Fab.video.toString();
 
     String postId = await Database.instance.createPost(newPost, _providerFab.file);
     await Database.instance.createComments(Comment()..commentId = postId);
@@ -228,5 +228,10 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
       _friendsData[i].posts.add(postId);
       await Database.instance.updateOtherUser(_friendsData[i]);
     }
+  }
+
+  void _deleteFile(){
+    _fileFormat = FileFormat.IMAGE;
+    _providerFab.file = null;
   }
 }

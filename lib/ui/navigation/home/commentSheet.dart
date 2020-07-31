@@ -33,6 +33,7 @@ class CommentSheetState extends State<CommentSheet> {
   User _me;
 
   TextEditingController _controllerMyComment, _controllerEditingComment;
+  FocusNode _focusNode;
   int _positionReply;
   int _selectedCommentPosition;
   String _selectedCommentKey;
@@ -47,6 +48,7 @@ class CommentSheetState extends State<CommentSheet> {
     _countComment = 0;
     _selectedCommentPosition = 0;
     _isEditEnable = false;
+    _focusNode = FocusNode();
     _controllerMyComment = TextEditingController();
     _controllerEditingComment = TextEditingController();
 
@@ -73,17 +75,17 @@ class CommentSheetState extends State<CommentSheet> {
 
   Widget _body(){
     return Padding(
-        padding: EdgeInsets.fromLTRB(18, 0, 18, 5),
+        padding: EdgeInsets.fromLTRB(18, 0, 18, 10),
         child: Stack(
             children: <Widget>[
-              _commentsWritten(widget.scrollController),
-              _commentWriteYour()
+              _commentView(widget.scrollController),
+              _myComment()
             ]
         )
     );
   }
 
-  Widget _commentWriteYour(){
+  Widget _myComment(){
     return Align(
         alignment: Alignment.bottomCenter,
         child: Column(
@@ -96,35 +98,50 @@ class CommentSheetState extends State<CommentSheet> {
                     borderRadius: BorderRadius.circular(30),
                     color: Colors.black26
                 ),
-                child: TextFormField(
-                    controller: _controllerMyComment,
-                    minLines: 1,
-                    maxLines: 2,
-                    keyboardType: TextInputType.multiline,
-                    decoration: InputDecoration(
-                        hintText: 'Write comment',
-                        hintStyle: TextStyle(color: Colors.white, fontSize: 12),
-                        contentPadding: EdgeInsets.only(left: 10, right: 10),
-                        border: InputBorder.none
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextFormField(
+                          controller: _controllerMyComment,
+                          focusNode: _focusNode,
+                          minLines: 1,
+                          maxLines: 2,
+                          keyboardType: TextInputType.multiline,
+                          decoration: InputDecoration(
+                              hintText: 'Write comment',
+                              hintStyle: TextStyle(color: Colors.white, fontSize: 12),
+                              contentPadding: EdgeInsets.only(left: 10, right: 10),
+                              border: InputBorder.none
+                          ),
+                          style: TextStyle(color: Colors.white),
+                          onChanged: (data){
+                            if(data.length == 0){
+                              _providerNavigationHome.hasText = false;
+                            } else {
+                              if(!_providerNavigationHome.hasText){
+                                _providerNavigationHome.hasText = true;
+                              }
+                            }
+                          }
+                      ),
                     ),
-                    style: TextStyle(color: Colors.white),
-                    onChanged: (data) =>  _providerNavigationHome.hasText = data.length > 0
-                )
-            ),
-            Visibility(
-                visible: _providerNavigationHome.hasText || _providerNavigationHome.keyboardState,
-                child: Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                        onTap: _sendComment,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: Icon(Icons.send, color: Colors.white),
+                    Visibility(
+                        visible: _providerNavigationHome.hasText,
+                        child: Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                                onTap: _sendComment,
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                  child: Icon(Icons.send, color: Colors.white),
+                                )
+                            )
                         )
                     )
+                  ]
                 )
             )
-          ],
+          ]
         )
     );
   }
@@ -181,16 +198,19 @@ class CommentSheetState extends State<CommentSheet> {
     );
   }
 
-  Widget _commentsWritten(ScrollController controller){
+  Widget _commentView(ScrollController controller){
     _countComment = 0;
 
-    return Padding(
+    return _comments.commentsForRead.length == 0
+        ? Center(child: Icon(Icons.add_comment, color: Colors.deepOrange, size: 100))
+        : Padding(
         padding: EdgeInsets.only(
             bottom: _providerNavigationHome.hasText || _providerNavigationHome.keyboardState
-                ? _providerNavigationHome.replyTag.isNotEmpty ? 145 : 110
-                : _providerNavigationHome.replyTag.isNotEmpty ? 105 : 65
+                ? _providerNavigationHome.replyTag.isNotEmpty ? 92 : 50
+                : 50
         ),
         child: ListView.builder(
+            padding: EdgeInsets.only(bottom: 20),
             shrinkWrap: true,
             controller: controller,
             itemCount: _comments.commentsForRead.length,
@@ -204,7 +224,7 @@ class CommentSheetState extends State<CommentSheet> {
               }
 
               return !hasReplies
-                  ? _commentItem(positionComment, '0')
+                  ? _itemComment(positionComment, '0')
                   : ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
@@ -213,8 +233,8 @@ class CommentSheetState extends State<CommentSheet> {
                     String keyCommentDetail = _comments.commentsForRead[positionComment].keys.elementAt(positionReply);
 
                     return  positionReply == 0
-                        ? _commentItem(positionComment, keyCommentDetail)
-                        : _replyItem(positionComment, keyCommentDetail);
+                        ? _itemComment(positionComment, keyCommentDetail)
+                        : _itemReply(positionComment, keyCommentDetail);
                   }
               );
             }
@@ -222,7 +242,7 @@ class CommentSheetState extends State<CommentSheet> {
     );
   }
 
-  Widget _commentItem(int positionComment, String keyCommentDetail){
+  Widget _itemComment(int positionComment, String keyCommentDetail){
     _countComment++;
     CommentDetail comment = _comments.commentsForRead[positionComment][keyCommentDetail];
     bool isEditedComment = _isEditEnable && _selectedCommentPosition == positionComment && _selectedCommentKey == keyCommentDetail;
@@ -232,6 +252,7 @@ class CommentSheetState extends State<CommentSheet> {
         padding: const EdgeInsets.only(top: 20),
         child: GestureDetector(
           onLongPress: (){
+            _isEditEnable = false;
             _selectedCommentPosition = positionComment;
             _selectedCommentKey = keyCommentDetail;
             _showCommentOptions(comment, false);
@@ -325,7 +346,7 @@ class CommentSheetState extends State<CommentSheet> {
     );
   }
 
-  Widget _replyItem(int positionComment, String keyCommentDetail){
+  Widget _itemReply(int positionComment, String keyCommentDetail){
     _countComment++;
     CommentDetail comment = _comments.commentsForRead[positionComment][keyCommentDetail];
     bool isEditedComment = _isEditEnable && _selectedCommentPosition == positionComment && _selectedCommentKey == keyCommentDetail;
@@ -337,6 +358,7 @@ class CommentSheetState extends State<CommentSheet> {
             padding: const EdgeInsets.only(left: 40, top: 15),
             child: GestureDetector(
                 onLongPress: (){
+                  _isEditEnable = false;
                   _selectedCommentPosition = positionComment;
                   _selectedCommentKey = keyCommentDetail;
                   _showCommentOptions(comment, true);
@@ -553,8 +575,9 @@ class CommentSheetState extends State<CommentSheet> {
     }
   }
 
-  void _sendComment(){
-    _providerNavigationHome.replyTag.isEmpty ? _writeNewComment() : _writeReplyComment();
+
+  Future<void> _sendComment() async {
+    _providerNavigationHome.replyTag.isEmpty ? await _writeNewComment() : await _writeReplyComment();
   }
 
   Future<void>_writeNewComment() async {
@@ -626,15 +649,14 @@ class CommentSheetState extends State<CommentSheet> {
     }
   }
 
+
   Future<void>_editComment(CommentDetail comment) async {
     if(_isPostAvailable()){
       _isEditEnable = true;
       comment.editable = true;
       _controllerEditingComment.text = comment.comment;
       Navigator.pop(context);
-      // for setState at bottomSheet
-      _providerNavigationHome.hasText = true;
-      _providerNavigationHome.hasText = false;
+      FocusScope.of(context).requestFocus(_focusNode);
     }
   }
 
@@ -690,6 +712,7 @@ class CommentSheetState extends State<CommentSheet> {
         )
     );
   }
+
 
   void _openProfile(CommentDetail comment){
     showMaterialModalBottomSheet(

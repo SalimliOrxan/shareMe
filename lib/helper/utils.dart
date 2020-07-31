@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/auth.dart';
@@ -212,6 +214,32 @@ Future<void> showExitDialog(BuildContext context) async {
               color: Colors.deepOrange
             )
           ]
+        );
+      }
+  );
+}
+
+Future<void> showImageDialog(BuildContext context, String url) async {
+  await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext _context){
+        return Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.black,
+            iconTheme: IconThemeData(color: Colors.white)
+          ),
+          body: Center(
+            child: Container(
+              child: PhotoView(
+                imageProvider: CachedNetworkImageProvider(url),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.contained * 2,
+              ),
+            )
+          )
         );
       }
   );

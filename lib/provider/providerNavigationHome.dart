@@ -114,23 +114,31 @@ class ProviderNavigationHome with ChangeNotifier {
     );
   }
 
-  void showAudioSheet(BuildContext context, bool isInsert){
-    showModalBottomSheet(
+  void showAudioSheet(BuildContext context, List friends, bool isInsert, String fileUrl){
+    showMaterialModalBottomSheet(
         context: context,
-        builder: (BuildContext context){
+        builder: (BuildContext context, ScrollController controller){
           return ClipRRect(
               borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-              child: VoiceRecorder(isInsert: isInsert)
+              child: MultiProvider(
+                  providers: [
+                    StreamProvider.value(value: Database.instance.usersByUid(friends)),
+                    StreamProvider.value(value: Database.instance.currentUserData)
+                  ],
+                  child: Container(
+                      height: isInsert ? 420 : 150,
+                      child: VoiceRecorder(controller: controller, isInsert: isInsert, fileUrl: fileUrl)
+                  )
+              )
           );
         }
     );
   }
 
   void showPhotoOrVideoSheet(BuildContext context, List friends){
-    showModalBottomSheet(
-        isScrollControlled: true,
+    showMaterialModalBottomSheet(
         context: context,
-        builder: (BuildContext context){
+        builder: (BuildContext context, ScrollController controller){
           return ClipRRect(
               borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
               child: Container(
@@ -140,7 +148,7 @@ class ProviderNavigationHome with ChangeNotifier {
                         StreamProvider.value(value: Database.instance.usersByUid(friends)),
                         StreamProvider.value(value: Database.instance.currentUserData)
                       ],
-                      child: ImageOrVideo()
+                      child: ImageOrVideo(controller: controller)
                   )
               )
           );
@@ -185,7 +193,9 @@ class ProviderNavigationHome with ChangeNotifier {
   }
 
   Future<void>share(String fileUrl) async {
-    await Share.share(fileUrl);
+    if(fileUrl.isNotEmpty){
+      await Share.share(fileUrl);
+    }
   }
 
   Future<void>deletePost(Post post) async {

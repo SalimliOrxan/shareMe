@@ -15,6 +15,9 @@ enum FileFormat{IMAGE, VIDEO, VIDEO_RECORD}
 
 class ImageOrVideo extends StatefulWidget {
 
+  final ScrollController controller;
+  ImageOrVideo({@required this.controller});
+
   @override
   _ImageOrVideoState createState() => _ImageOrVideoState();
 }
@@ -59,6 +62,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
     return Padding(
       padding: const EdgeInsets.all(18.0),
       child: SingleChildScrollView(
+        controller: widget.controller,
         child: Column(
             children: <Widget>[
               _titleField(),
@@ -66,8 +70,8 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
               _pickButtons(),
               _postButton()
             ]
-        ),
-      ),
+        )
+      )
     );
   }
 
@@ -214,7 +218,7 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
     newPost.uid      = _me.uid;
     newPost.fullName = _me.fullName;
     newPost.userImg  = _me.imgProfile;
-    newPost.title    = _controllerTitle.text;
+    newPost.title    = _controllerTitle.text.trim();
     newPost.fileType = _fileFormat == FileFormat.IMAGE ? Fab.photo.toString() : Fab.video.toString();
 
     String postId = await Database.instance.createPost(newPost, _providerFab.file);

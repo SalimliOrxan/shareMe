@@ -55,8 +55,7 @@ class Database {
 
     DocumentReference commentRef = _collectionComments.document(post.postId);
     await commentRef.delete();
-
-    if(post.fileName.isNotEmpty) await Storage.instance.deletePostFile(post);
+    await Storage.instance.deletePostFile(post);
   }
 
   Future<void>createComments(Comment comment) async {

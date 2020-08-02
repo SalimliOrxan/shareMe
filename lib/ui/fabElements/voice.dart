@@ -7,16 +7,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/helper/utils.dart';
+import 'package:share_me/model/comment.dart';
+import 'package:share_me/model/post.dart';
+import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerFab.dart';
 import 'package:file/local.dart';
 import 'package:file/file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_me/service/database.dart';
+import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 
 class VoiceRecorder extends StatefulWidget {
 
   final LocalFileSystem localFileSystem;
+  final ScrollController controller;
   final isInsert;
-  VoiceRecorder({localFileSystem, @required this.isInsert}) : this.localFileSystem = localFileSystem ?? LocalFileSystem();
+  final fileUrl;
+  VoiceRecorder({localFileSystem, @required this.controller, @required this.isInsert, @required this.fileUrl}) : this.localFileSystem = localFileSystem ?? LocalFileSystem();
 
   @override
   _VoiceRecorderState createState() => _VoiceRecorderState();
@@ -26,9 +34,13 @@ class VoiceRecorder extends StatefulWidget {
 class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateMixin {
 
   ProviderFab _providerFab;
+  List<User>_friendsData;
+  User _me;
+
   AudioPlayer _audioPlayer;
   var _positionSubscription, _audioPlayerStateSubscription;
   AnimationController _controller;
+  TextEditingController _controllerTitle;
   List<Color>_colors;
   RecordingStatus _statusRecord = RecordingStatus.Unset;
 
@@ -36,8 +48,9 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
   void initState() {
     super.initState();
 
-    _audioPlayer = AudioPlayer();
-    _colors = [Colors.blue, Colors.red];
+    _audioPlayer     = AudioPlayer();
+    _controllerTitle = TextEditingController();
+    _colors          = [Colors.blue, Colors.red];
     _init();
     _controller = AnimationController(
       vsync: this,
@@ -64,12 +77,15 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
     _controller.dispose();
     _positionSubscription?.cancel();
     _audioPlayerStateSubscription?.cancel();
+    _controllerTitle.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     _providerFab = Provider.of<ProviderFab>(context);
+    _friendsData = Provider.of<List<User>>(context);
+    _me          = Provider.of<User>(context);
 
     return Scaffold(
         backgroundColor: colorApp,
@@ -79,21 +95,26 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
 
 
   Widget _body(){
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        _buttonRecord(),
-        _durationField(),
-        _audioPlayerField(),
-        _buttonPost()
-      ]
+    return SingleChildScrollView(
+      controller: widget.controller,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          _buttonRecord(),
+          _durationField(),
+          _audioPlayerField(),
+          _titleField(),
+          _buttonPost()
+        ]
+      )
     );
   }
 
   Widget _buttonRecord(){
     return Visibility(
       visible: widget.isInsert,
-      child: Expanded(
+      child: Container(
+        height: 100,
         child: AnimatedBuilder(
           animation: CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn),
           builder: (context, child) {
@@ -108,13 +129,13 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
                   onPressed: _recordProcess,
                   child: Icon(Icons.keyboard_voice),
                   backgroundColor: _providerFab.colorVoiceFab,
-                  elevation: 5,
+                  elevation: 5
                 )
               ]
             );
           }
         )
-      ),
+      )
     );
   }
 
@@ -146,9 +167,10 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
     return Padding(
       padding: const EdgeInsets.only(top: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
-          IgnorePointer(
-            ignoring: false,
+          Visibility(
+            visible: !widget.isInsert || (_providerFab.current != null && io.File(_providerFab.current.path).existsSync()),
             child: Slider(
                 value: _providerFab.voiceVolume,
                 min: 0,
@@ -157,22 +179,25 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
                   _audioPlayer.seek(value);
                   _providerFab.voiceVolume = value;
                 }
-            ),
+            )
           ),
           Stack(
             children: <Widget>[
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    IconButton(
-                        onPressed: onPlayAudio,
-                        icon: Icon(_providerFab.iconPlayPause, color: Colors.white, size: 40)
-                    ),
-                    IconButton(
-                        onPressed: () async => await _audioPlayer.stop(),
-                        icon: Icon(Icons.stop, color: Colors.white, size: 40)
-                    )
-                  ]
+              Visibility(
+                visible: !widget.isInsert || (_providerFab.current != null && io.File(_providerFab.current.path).existsSync()),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      IconButton(
+                          onPressed: onPlayAudio,
+                          icon: Icon(_providerFab.iconPlayPause, color: Colors.white, size: 35)
+                      ),
+                      IconButton(
+                          onPressed: () async => await _audioPlayer.stop(),
+                          icon: Icon(Icons.stop, color: Colors.white, size: 35)
+                      )
+                    ]
+                )
               ),
               Visibility(
                 visible: widget.isInsert,
@@ -184,13 +209,16 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
                       onPressed: (){
                         if(_statusRecord == RecordingStatus.Stopped && _audioPlayer.state != AudioPlayerState.PLAYING){
                           _init();
+                          if(io.File(_providerFab.current.path).existsSync()){
+                            io.File(_providerFab.current.path).deleteSync();
+                          }
                           _providerFab.voiceVolume = 0;
                         }
                       },
-                      icon: Icon(Icons.clear, color: Colors.white, size: 40)
+                      icon: Icon(Icons.clear, color: Colors.white, size: 35)
                     )
-                  ),
-                ),
+                  )
+                )
               )
             ]
           )
@@ -199,17 +227,47 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
     );
   }
 
+  Widget _titleField(){
+    return Visibility(
+        visible: _providerFab.current != null && io.File(_providerFab.current.path).existsSync(),
+        child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+            child: Container(
+              padding: EdgeInsets.only(top: 2),
+              child: TextFormField(
+                  controller: _controllerTitle,
+                  style: TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                      labelText: 'Title',
+                      labelStyle: TextStyle(color: Colors.white),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide(
+                              color: Colors.blueGrey
+                          )
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      )
+                  ),
+                  minLines: 1,
+                  maxLines: 3,
+                  keyboardType: TextInputType.multiline
+              )
+            )
+        )
+    );
+  }
+
   Widget _buttonPost(){
     return Visibility(
       visible: widget.isInsert,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 50, 24, 30),
+        padding: const EdgeInsets.fromLTRB(24, 30, 24, 18),
         child: Container(
           width: double.infinity,
           child: RaisedButton(
-            onPressed: (){
-              print(_providerFab.current.path);
-            },
+            onPressed: _post,
             elevation: 5,
             child: Text(
               'Post',
@@ -219,9 +277,9 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
               borderRadius: BorderRadius.circular(5)
             ),
             color: Colors.deepOrange,
-          ),
-        ),
-      ),
+          )
+        )
+      )
     );
   }
 
@@ -328,10 +386,10 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
           await _audioPlayer.pause();
         } else await _audioPlayer.play(_providerFab.current.path, isLocal: true);
       } else return;
-    } else {
+    } else {print(widget.fileUrl);
       if(_audioPlayer.state == AudioPlayerState.PLAYING){
         await _audioPlayer.pause();
-      } else await _audioPlayer.play('https://mp3.big.az/demomp3/745172_3482622514.mp3', isLocal: false);
+      } else await _audioPlayer.play(widget.fileUrl, isLocal: false);
     }
     _positionSubscription = _audioPlayer.onAudioPositionChanged.listen((p) => _providerFab.voiceVolume = p.inSeconds.toDouble());
 
@@ -355,5 +413,28 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
       _providerFab.voiceVolume = 0;
       _providerFab.iconPlayPause = Icons.play_arrow;
     });
+  }
+
+  void _post() async {
+    showLoading(context);
+
+    Post newPost = Post();
+    newPost.uid      = _me.uid;
+    newPost.fullName = _me.fullName;
+    newPost.userImg  = _me.imgProfile;
+    newPost.title    = _controllerTitle.text.trim();
+    newPost.fileType = Fab.audio.toString();
+
+    String postId = await Database.instance.createPost(newPost, io.File(_providerFab.current.path));
+    await Database.instance.createComments(Comment()..commentId = postId);
+    await Database.instance.updateUserData(_me..posts.add(postId));
+
+    Navigator.pop(context);
+    Navigator.pop(context);
+
+    for(int i=0; i<_me.friends.length; i++){
+      _friendsData[i].posts.add(postId);
+      await Database.instance.updateOtherUser(_friendsData[i]);
+    }
   }
 }

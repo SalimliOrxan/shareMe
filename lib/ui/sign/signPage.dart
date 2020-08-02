@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/helper/localData.dart';
 import 'package:share_me/ui/sign/registerPage.dart';
 
 import 'loginPage.dart';
@@ -12,13 +11,6 @@ class SignPage extends StatefulWidget {
 }
 
 class _SignPageState extends State<SignPage> {
-
-
-  @override
-  void initState() {
-    super.initState();
-    LocalData.instance.initSP();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +39,7 @@ class _SignPageState extends State<SignPage> {
   Widget _icon(){
     return Flexible(
         child: FractionallySizedBox(
-            heightFactor: 1,
+            heightFactor: 1.2,
             child: Container(
                 width: double.infinity,
                 child: icPeople

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:logger/logger.dart';
 import 'package:share_me/model/post.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
@@ -41,7 +40,8 @@ class Storage {
   Future<void> uploadPostFile(Post post, File file) async {
     if(file != null){
       String fileType = post.fileType;
-      Fab type = Fab.values.firstWhere((e) => e.toString() == fileType);
+      Fab type        = Fab.values.firstWhere((e) => e.toString() == fileType);
+      post.fileName   = 'postFile${path.extension(file.path)}';
 
       switch(type){
         case Fab.audio:
@@ -61,13 +61,33 @@ class Storage {
           break;
       }
 
-      post.fileName   = 'postFile${path.extension(file.path)}';
       _downloadUrl    = await _uploadTask.onComplete;
       post.fileUrl    = await _downloadUrl.ref.getDownloadURL();
     }
   }
 
   Future<void> deletePostFile(Post post) async {
-    await _storage.child('images/imgPost').child('${post.postId}/${post.fileName}').delete();
+    if(post.fileName.isNotEmpty){
+      String fileType = post.fileType;
+      Fab type        = Fab.values.firstWhere((e) => e.toString() == fileType);
+
+      switch(type){
+        case Fab.audio:
+          await _storage.child('audio/audioPost').child('${post.postId}/${post.fileName}').delete();
+          break;
+        case Fab.video:
+          await _storage.child('video/videoPost').child('${post.postId}/${post.fileName}').delete();
+          break;
+        case Fab.photo:
+          await _storage.child('images/imgPost').child('${post.postId}/${post.fileName}').delete();
+          break;
+        case Fab.location:
+          break;
+        case Fab.link:
+          break;
+        case Fab.snippet:
+          break;
+      }
+    }
   }
 }

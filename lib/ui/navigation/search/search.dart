@@ -6,14 +6,14 @@ import 'package:share_me/provider/providerSearch.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/navigation/search/searchResult.dart';
 
-class NavigationSearchPage extends StatefulWidget {
+class SearchPage extends StatefulWidget {
 
   @override
-  _NavigationSearchPageState createState() => _NavigationSearchPageState();
+  _SearchPageState createState() => _SearchPageState();
 }
 
 
-class _NavigationSearchPageState extends State<NavigationSearchPage> {
+class _SearchPageState extends State<SearchPage> {
 
   ProviderSearch _providerSearch;
 

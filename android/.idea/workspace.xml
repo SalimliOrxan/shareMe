@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="33e6879d-8082-4716-8dce-2605ca694a8b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../lib/service/messaging.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../lib/ui/navigation/search/searchedProfile.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lib/ui/navigation/chat/chat.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../.flutter-plugins" beforeDir="false" afterPath="$PROJECT_DIR$/../.flutter-plugins" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/../.flutter-plugins-dependencies" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/libraries/Dart_Packages.xml" afterDir="false" />
@@ -22,19 +21,30 @@
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/checksums/checksums.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/checksums/md5-checksums.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/checksums/sha1-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules/app/app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules/app/app.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ios/Runner/GeneratedPluginRegistrant.m" beforeDir="false" afterPath="$PROJECT_DIR$/../ios/Runner/GeneratedPluginRegistrant.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/provider/providerSearch.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/provider/providerSearch.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/helper/customValues.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/helper/customValues.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/helper/localData.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/provider/providerNavigationHome.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/provider/providerNavigationHome.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/service/database.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/service/database.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/service/storage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/service/storage.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/ui/navigation/myPosts/navigationMyPostsPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/navigation/myPosts/navigationMyPostsPage.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/detector.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/detector.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/fabElements/imageOrVideo.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/fabElements/imageOrVideo.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/fabElements/voice.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/fabElements/voice.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/navigation/home/navigationHomePage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/navigation/home/navigationHomePage.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/navigation/myPosts/navigationMyPostsPage.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/navigation/navigationPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/navigation/navigationPage.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/ui/navigation/notification/notification.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/navigation/notification/notification.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/navigation/profile/navigationProfilePage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/navigation/profile/navigationProfilePage.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../lib/ui/navigation/search/search.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/navigation/search/search.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../lib/ui/navigation/search/searchResult.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/navigation/search/searchResult.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/sign/loginPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/sign/loginPage.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/sign/registerPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/sign/registerPage.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lib/ui/sign/signPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/../lib/ui/sign/signPage.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../pubspec.yaml" afterDir="false" />
     </list>
@@ -43,7 +53,7 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="Pocophone_f1_API_29" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="4321c63c" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />

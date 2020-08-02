@@ -15,14 +15,14 @@ import 'package:share_me/ui/navigation/home/videoView.dart';
 
 enum Fab {audio, location, snippet, link, video, photo}
 
-class NavigationHomePage extends StatefulWidget {
+class HomePage extends StatefulWidget {
 
   @override
-  _NavigationHomePageState createState() => _NavigationHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
 
-class _NavigationHomePageState extends State<NavigationHomePage> {
+class _HomePageState extends State<HomePage> {
 
   ProviderNavigationHome _providerNavigationHome;
   List<Post> _posts;
@@ -52,7 +52,9 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
     return Scaffold(
         backgroundColor: colorApp,
-        body: _body(),
+        body: _posts == null || _posts.length == 0
+            ? _emptyBody()
+            : _body(),
         floatingActionButton: _fab()
     );
   }
@@ -65,8 +67,14 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         controller: _refreshController,
         onRefresh: _onRefresh,
         header: ClassicHeader(),
-        child: _posts == null ? Container() : _postView()
+        child: _postView()
       )
+    );
+  }
+
+  Widget _emptyBody(){
+    return Center(
+      child: Icon(Icons.message, color: Colors.deepOrange, size: 100)
     );
   }
 
@@ -228,7 +236,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
             )
           ]
         )
-      ),
+      )
     );
   }
 
@@ -357,6 +365,17 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
 
     switch(type){
       case Fab.audio:
+        view = Center(
+            child: Container(
+              width: double.infinity,
+              color: Colors.transparent,
+              child: Icon(
+                  Icons.music_note,
+                  color: Colors.pinkAccent,
+                  size: 60
+              ),
+            )
+        );
         break;
       case Fab.location:
         break;
@@ -378,8 +397,13 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         padding: EdgeInsets.only(top: 20, bottom: 20),
         width: double.infinity,
         child: GestureDetector(
-          onTap: () => showImageDialog(context, _posts.elementAt(position).fileUrl),
-          child: view
+          onTap: () => _pressedPostData(type, position),
+          child: ConstrainedBox(
+              constraints: BoxConstraints(
+                  maxHeight: 300
+              ),
+              child: view
+          )
         )
     );
   }
@@ -540,8 +564,8 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
                         )
                     )
                   ]
-              ),
-            ),
+              )
+            )
           )
         ]
     );
@@ -572,7 +596,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
     _me                     = Provider.of<User>(context);
 
     WidgetsBinding.instance.addPostFrameCallback((_){
-      _refreshController.position.addListener((){
+      _refreshController?.position?.addListener((){
         if(_refreshController.position.userScrollDirection == ScrollDirection.reverse){
           if(_providerNavigationHome.dialVisible){
             _providerNavigationHome.dialVisible = false;
@@ -594,7 +618,7 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
   void _pressedItemsFAB(Fab status){
     switch(status){
       case Fab.audio:
-        _providerNavigationHome.showAudioSheet(context, true);
+        _providerNavigationHome.showAudioSheet(context, _me.friends, true, null);
         break;
       case Fab.location:
         break;
@@ -614,6 +638,25 @@ class _NavigationHomePageState extends State<NavigationHomePage> {
         break;
       case Fab.photo:
         _providerNavigationHome.showPhotoOrVideoSheet(context, _me.friends);
+        break;
+    }
+  }
+
+  void _pressedPostData(Fab status, int position){
+    switch(status){
+      case Fab.audio:
+        _providerNavigationHome.showAudioSheet(context, _me.friends, false, _posts.elementAt(position).fileUrl);
+        break;
+      case Fab.location:
+        break;
+      case Fab.snippet:
+        break;
+      case Fab.link:
+        break;
+      case Fab.video:
+        break;
+      case Fab.photo:
+        showImageDialog(context, _posts.elementAt(position).fileUrl);
         break;
     }
   }

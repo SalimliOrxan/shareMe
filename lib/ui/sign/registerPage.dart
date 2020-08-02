@@ -250,10 +250,13 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _generateSearchKeys(){
+    _user.searchKeys = [];
     _user.fullName = '${_user.name} ${_user.surname}';
-    for(int i=0; i<_user.name.length; i++){
-      _user.searchKeys.add(_user.name.toLowerCase().substring(0, i + 1));
+
+    for(int i=0; i<_user.fullName.length; i++){
+      _user.searchKeys.add(_user.fullName.toLowerCase().substring(0, i + 1));
     }
+
     for(int i=0; i<_user.surname.length; i++){
       _user.searchKeys.add(_user.surname.toLowerCase().substring(0, i + 1));
     }

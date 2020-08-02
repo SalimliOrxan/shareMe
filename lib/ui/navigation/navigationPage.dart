@@ -7,12 +7,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/model/post.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/database.dart';
+import 'package:share_me/ui/navigation/chat/chat.dart';
 import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
-import 'package:share_me/ui/navigation/myPosts/navigationMyPostsPage.dart';
 import 'package:share_me/ui/navigation/notification/notification.dart';
 import 'package:share_me/ui/navigation/profile/navigationProfilePage.dart';
 import 'package:share_me/ui/navigation/search/search.dart';
@@ -80,7 +79,7 @@ class _NavigationPageState extends State<NavigationPage> {
         animationDuration: Duration(milliseconds: 600),
         items: <Widget>[
           Icon(Icons.home, size: 30, color: Colors.deepOrange),
-          Icon(Icons.list, size: 30, color: Colors.deepOrange),
+          Icon(Icons.chat, size: 30, color: Colors.deepOrange),
           Icon(Icons.search, size: 30, color: Colors.deepOrange),
           Stack(
             children: <Widget>[
@@ -112,18 +111,18 @@ class _NavigationPageState extends State<NavigationPage> {
       _pages.add(
           StreamProvider.value(
               value: Database.instance.getPosts(_me?.posts),
-              child: NavigationHomePage()
+              child: HomePage()
           )
       );
-      _pages.add(NavigationMyPostsPage());
-      _pages.add(NavigationSearchPage());
+      _pages.add(ChatPage());
+      _pages.add(SearchPage());
       _pages.add(
           StreamProvider.value(
               value: Database.instance.usersByUid(_me?.followRequests ?? []),
-              child: NavigationNotificationPage()
+              child: NotificationPage()
           )
       );
-      _pages.add(NavigationProfilePage());
+      _pages.add(ProfilePage());
     }
   }
 

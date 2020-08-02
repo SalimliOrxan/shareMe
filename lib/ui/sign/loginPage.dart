@@ -72,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
               _register()
             ]
         )
-      ),
+      )
     );
   }
 
@@ -89,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _description(){
     return Text(
-      'Hello there!\nWelcome Back',
+      'Welcome Back',
       style: TextStyle(
           fontSize: 25,
           color: Colors.white
@@ -179,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
             )
         ),
 
-      ),
+      )
     );
   }
 

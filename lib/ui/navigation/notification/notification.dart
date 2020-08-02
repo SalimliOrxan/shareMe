@@ -10,14 +10,14 @@ import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/navigation/search/targetProfile.dart';
 
-class NavigationNotificationPage extends StatefulWidget {
+class NotificationPage extends StatefulWidget {
 
   @override
-  _NavigationNotificationState createState() => _NavigationNotificationState();
+  _NotificationState createState() => _NotificationState();
 }
 
 
-class _NavigationNotificationState extends State<NavigationNotificationPage> {
+class _NotificationState extends State<NotificationPage> {
 
   List<User> _requestedUsers;
   User _me;

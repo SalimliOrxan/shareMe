@@ -9,14 +9,14 @@ import 'package:share_me/ui/navigation/profile/editPage.dart';
 import 'package:share_me/ui/navigation/profile/emailPage.dart';
 import 'package:share_me/ui/navigation/profile/passwordPage.dart';
 
-class NavigationProfilePage extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
 
   @override
-  _NavigationProfilePageState createState() => _NavigationProfilePageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
 
-class _NavigationProfilePageState extends State<NavigationProfilePage> {
+class _ProfilePageState extends State<ProfilePage> {
 
   User _user;
 

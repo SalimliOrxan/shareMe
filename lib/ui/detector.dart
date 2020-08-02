@@ -25,8 +25,9 @@ class Detector extends StatelessWidget {
         : SignPage());
   }
 
-  Future<void>_getUid() async {
-    FirebaseUser user = await FirebaseAuth.instance.currentUser();
-    Auth.instance.uid = user?.uid;
+  void _getUid(){
+    FirebaseAuth.instance.currentUser().then((user){
+      Auth.instance.uid = user?.uid;
+    });
   }
 }

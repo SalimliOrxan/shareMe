@@ -437,8 +437,10 @@ class CommentSheetState extends State<CommentSheet> {
       onTap: () => _openProfile(commentDetail),
       child: Padding(
         padding: const EdgeInsets.only(right: 5),
-        child: CachedNetworkImage(
-            imageUrl: commentDetail?.img ?? '',
+        child: commentDetail.img.isEmpty
+            ? Container(width: 40, height: 40, child: icUser)
+            : CachedNetworkImage(
+            imageUrl: commentDetail.img,
             placeholder: (context, url) => Center(child: CircularProgressIndicator()),
             errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
             fit: BoxFit.cover,
@@ -603,9 +605,9 @@ class CommentSheetState extends State<CommentSheet> {
       emptyMap['0'] = comment.toMap();
       _comments.commentsForWrite.add(emptyMap);
 
-      await Database.instance.updateComments(_comments);
       _controllerMyComment.text = '';
       _providerNavigationHome.hasText = false;
+      await Database.instance.updateComments(_comments);
 
       _post.countComment = _countComment;
       await Database.instance.updatePost(_post);
@@ -640,9 +642,9 @@ class CommentSheetState extends State<CommentSheet> {
       oldComments[newKey] = comment.toMap();
       _comments.commentsForWrite[_positionReply] = oldComments;
 
-      await Database.instance.updateComments(_comments);
       _controllerMyComment.text = '';
       _providerNavigationHome.hasText = false;
+      await Database.instance.updateComments(_comments);
 
       _post.countComment = _countComment;
       await Database.instance.updatePost(_post);

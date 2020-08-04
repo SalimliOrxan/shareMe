@@ -10,6 +10,7 @@ import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/fabElements/imageOrVideo.dart';
+import 'package:share_me/ui/fabElements/link.dart';
 import 'package:share_me/ui/fabElements/voice.dart';
 import 'package:share_me/ui/navigation/home/commentSheet.dart';
 import 'package:share_me/ui/navigation/search/targetProfile.dart';
@@ -149,6 +150,27 @@ class ProviderNavigationHome with ChangeNotifier {
                         StreamProvider.value(value: Database.instance.currentUserData)
                       ],
                       child: ImageOrVideo(controller: controller)
+                  )
+              )
+          );
+        }
+    );
+  }
+
+  void showLinkSheet(BuildContext context, List friends){
+    showMaterialModalBottomSheet(
+        context: context,
+        builder: (BuildContext context, ScrollController controller){
+          return ClipRRect(
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+              child: Container(
+                  height: 520,
+                  child: MultiProvider(
+                      providers: [
+                        StreamProvider.value(value: Database.instance.usersByUid(friends)),
+                        StreamProvider.value(value: Database.instance.currentUserData)
+                      ],
+                      child: Link(controller: controller)
                   )
               )
           );

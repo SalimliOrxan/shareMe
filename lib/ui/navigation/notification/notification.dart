@@ -44,19 +44,9 @@ class _NotificationState extends State<NotificationPage> {
   }
 
   Widget _notifications(){
-    return _requestedUsers == null
+    return _requestedUsers == null || _requestedUsers.length == 0
         ? _bodyNoNotification()
-        : _requestedUsers.length == 0
-        ? _bodyNoNotification()
-        : ListView.builder(
-        itemCount: _requestedUsers.length,
-        itemBuilder: (context, position){
-          return GestureDetector(
-              onTap: () => _itemClicked(position),
-              child: _item(position)
-          );
-        }
-    );
+        : _notificationFollow();
   }
 
   Widget _bodyNoNotification(){
@@ -65,7 +55,19 @@ class _NotificationState extends State<NotificationPage> {
     );
   }
 
-  Widget _item(int position){
+  Widget _notificationFollow(){
+    return ListView.builder(
+        itemCount: _requestedUsers.length,
+        itemBuilder: (context, position){
+          return GestureDetector(
+              onTap: () => _itemFollowClicked(position),
+              child: _itemFollow(position)
+          );
+        }
+    );
+  }
+
+  Widget _itemFollow(int position){
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
@@ -131,8 +133,7 @@ class _NotificationState extends State<NotificationPage> {
     );
   }
 
-
-  void _itemClicked(int position){
+  void _itemFollowClicked(int position){
     String uid = _requestedUsers.elementAt(position).uid;
     showMaterialModalBottomSheet(
         context: context,

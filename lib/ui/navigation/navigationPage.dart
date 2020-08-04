@@ -118,8 +118,8 @@ class _NavigationPageState extends State<NavigationPage> {
       _pages.add(SearchPage());
       _pages.add(
           StreamProvider.value(
-              value: Database.instance.usersByUid(_me?.followRequests ?? []),
-              child: NotificationPage()
+            value: Database.instance.usersByUid(_me?.followRequests ?? []),
+            child: NotificationPage()
           )
       );
       _pages.add(ProfilePage());

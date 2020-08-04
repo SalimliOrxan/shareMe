@@ -68,6 +68,7 @@ class Database {
     return await docRef.updateData(comment.toMap());
   }
 
+
   Stream<TargetUser>userById(String uid){
     DocumentReference userRef = _collectionUsers.document(uid);
     return userRef.snapshots().map((event) => TargetUser.fromMap(event));

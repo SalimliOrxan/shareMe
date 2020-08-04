@@ -12,6 +12,7 @@ import 'package:share_me/model/post.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigationHome.dart';
 import 'package:share_me/ui/navigation/home/videoView.dart';
+import 'package:share_me/ui/navigation/home/youtubeVideoView.dart';
 
 enum Fab {audio, location, snippet, link, video, photo}
 
@@ -367,6 +368,7 @@ class _HomePageState extends State<HomePage> {
       case Fab.audio:
         view = Center(
             child: Container(
+              height: 50,
               width: double.infinity,
               color: Colors.transparent,
               child: Icon(
@@ -382,6 +384,12 @@ class _HomePageState extends State<HomePage> {
       case Fab.snippet:
         break;
       case Fab.link:
+        if(_posts.elementAt(position).fileUrl.contains('youtube')){
+          view = AspectRatio(
+              aspectRatio: 16 / 9,
+              child: YoutubeView(url: _posts.elementAt(position).fileUrl)
+          );
+        }
         break;
       case Fab.video:
         String url = _posts.elementAt(position).fileUrl;
@@ -389,7 +397,10 @@ class _HomePageState extends State<HomePage> {
         break;
       case Fab.photo:
         String url = _posts.elementAt(position).fileUrl;
-        view = url.isEmpty ? null : _photoView(url);
+        view = url.isEmpty ? null : ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: 300),
+            child: _photoView(url)
+        );
         break;
     }
 
@@ -398,12 +409,7 @@ class _HomePageState extends State<HomePage> {
         width: double.infinity,
         child: GestureDetector(
           onTap: () => _pressedPostData(type, position),
-          child: ConstrainedBox(
-              constraints: BoxConstraints(
-                  maxHeight: 300
-              ),
-              child: view
-          )
+          child: view
         )
     );
   }
@@ -625,13 +631,7 @@ class _HomePageState extends State<HomePage> {
       case Fab.snippet:
         break;
       case Fab.link:
-//        showDialogFab(
-//            context,
-//            LinkPreviewer(
-//              link: "https://www.linkedin.com/feed/",
-//              direction: ContentDirection.horizontal
-//            )
-//        );
+        _providerNavigationHome.showLinkSheet(context, _me.friends);
         break;
       case Fab.video:
         _providerNavigationHome.showPhotoOrVideoSheet(context, _me.friends);

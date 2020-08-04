@@ -17,7 +17,6 @@ class User {
   List<dynamic> searchKeys = [];
   List<dynamic> posts = [];
   List<dynamic> postsHidden = [];
-  List<dynamic> postsBanned = [];
 
   User({
     this.uid,

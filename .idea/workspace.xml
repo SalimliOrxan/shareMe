@@ -2,8 +2,22 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ac249650-9ed1-4d61-8761-a37049365b13" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/lib/ui/fabElements/link.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/ui/navigation/home/youtubeVideoView.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/ic_launcher-playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable/ic_share.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable/splash_screen.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/values/ic_launcher_background.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.flutter-plugins" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/.flutter-plugins-dependencies" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
@@ -24,17 +38,24 @@
       <change beforePath="$PROJECT_DIR$/android/.gradle/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/android/.gradle/checksums/checksums.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/.gradle/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/android/.gradle/checksums/md5-checksums.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/.gradle/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/android/.gradle/checksums/sha1-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/.idea/modules/app/app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/android/.idea/modules/app/app.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/android/local.properties" beforeDir="false" afterPath="$PROJECT_DIR$/android/local.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/drawable/launch_background.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable/launch_background.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-hdpi/ic_launcher.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-mdpi/ic_launcher.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ios/Runner/GeneratedPluginRegistrant.m" beforeDir="false" afterPath="$PROJECT_DIR$/ios/Runner/GeneratedPluginRegistrant.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/model/user.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/model/user.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/provider/providerNavigationHome.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/provider/providerNavigationHome.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/service/database.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/service/database.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/ui/navigation/home/commentSheet.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/navigation/home/commentSheet.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/ui/detector.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/detector.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/ui/fabElements/imageOrVideo.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/fabElements/imageOrVideo.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/ui/fabElements/link.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/fabElements/link.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/ui/navigation/home/navigationHomePage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/navigation/home/navigationHomePage.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/ui/navigation/home/videoView.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/navigation/home/videoView.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/ui/navigation/navigationPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/navigation/navigationPage.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/ui/navigation/notification/notification.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ui/navigation/notification/notification.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
@@ -214,7 +235,14 @@
       <option name="project" value="LOCAL" />
       <updated>1596455695580</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="youtube view">
+      <created>1596552208524</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1596552208524</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -245,14 +273,15 @@
     <MESSAGE value="posts &amp; video" />
     <MESSAGE value="audio" />
     <MESSAGE value="fixed flutter registrant error by&#10;build:gradle:4.0.1 =&gt; build:gradle:3.5.0" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed flutter registrant error by&#10;build:gradle:4.0.1 =&gt; build:gradle:3.5.0" />
+    <MESSAGE value="youtube view" />
+    <option name="LAST_COMMIT_MESSAGE" value="youtube view" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="765" y="236" key="#com.intellij.ide.util.MemberChooser" timestamp="1595939975373">
+    <state x="765" y="236" key="#com.intellij.ide.util.MemberChooser" timestamp="1596634349523">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="612" y="187" key="#com.intellij.ide.util.MemberChooser/0.0.1536.824@0.0.1536.824" timestamp="1595250351953" />
-    <state x="765" y="236" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1595939975373" />
+    <state x="765" y="236" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1596634349523" />
     <state x="615" y="436" key="#com.intellij.refactoring.move.MoveHandler.SelectRefactoringDialog" timestamp="1594990862769">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -261,35 +290,35 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="815" y="283" key="AndroidProcessChooserDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1595515585738" />
-    <state x="597" y="131" key="CommitChangelistDialog2" timestamp="1596455692882">
+    <state x="597" y="131" key="CommitChangelistDialog2" timestamp="1596552205557">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="246" y="17" key="CommitChangelistDialog2/0.0.1536.824@0.0.1536.824" timestamp="1595340437659" />
-    <state x="597" y="131" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1596455692882" />
-    <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1596454437140">
+    <state x="597" y="131" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1596552205557" />
+    <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1596620071231">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1596454437140" />
-    <state width="1877" height="457" key="GridCell.Tab.0.bottom" timestamp="1596551529940">
+    <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1596620071231" />
+    <state width="1877" height="715" key="GridCell.Tab.0.bottom" timestamp="1596635059002">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1491" height="241" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1595340461252" />
-    <state width="1877" height="457" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1596551529940" />
-    <state width="1877" height="457" key="GridCell.Tab.0.center" timestamp="1596551529939">
+    <state width="1877" height="715" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1596635059002" />
+    <state width="1877" height="715" key="GridCell.Tab.0.center" timestamp="1596635059002">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1491" height="241" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1595340461252" />
-    <state width="1877" height="457" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1596551529939" />
-    <state width="1877" height="457" key="GridCell.Tab.0.left" timestamp="1596551529939">
+    <state width="1877" height="715" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1596635059002" />
+    <state width="1877" height="715" key="GridCell.Tab.0.left" timestamp="1596635059002">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1491" height="241" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1595340461252" />
-    <state width="1877" height="457" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1596551529939" />
-    <state width="1877" height="457" key="GridCell.Tab.0.right" timestamp="1596551529940">
+    <state width="1877" height="715" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1596635059002" />
+    <state width="1877" height="715" key="GridCell.Tab.0.right" timestamp="1596635059002">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1491" height="241" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1595340461252" />
-    <state width="1877" height="457" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1596551529940" />
+    <state width="1877" height="715" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1596635059002" />
     <state x="461" y="162" key="SettingsEditor" timestamp="1595084546055">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -298,11 +327,11 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="498" height="457" key="SwitcherDM/0.0.1920.1040@0.0.1920.1040" timestamp="1595681246326" />
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1596455699628">
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1596552213920">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="442" y="200" key="Vcs.Push.Dialog.v2/0.0.1536.824@0.0.1536.824" timestamp="1595340446202" />
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1596455699628" />
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1596552213920" />
     <state x="92" y="92" width="1736" height="856" key="com.android.tools.idea.avdmanager.AvdListDialog" timestamp="1596540836817">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -312,15 +341,15 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="646" y="124" width="627" height="792" key="find.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1595258303732" />
-    <state x="616" y="240" key="run.anything.popup" timestamp="1596183417542">
+    <state x="616" y="240" key="run.anything.popup" timestamp="1596634542968">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="493" y="190" key="run.anything.popup/0.0.1536.824@0.0.1536.824" timestamp="1595324003927" />
-    <state x="616" y="240" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1596183417542" />
-    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1596551685901">
+    <state x="616" y="240" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1596634542968" />
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1596635006414">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="498" y="178" width="672" height="538" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1595339256023" />
-    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1596551685901" />
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1596635006414" />
   </component>
 </project>

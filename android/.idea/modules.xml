@@ -14,6 +14,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/1603198114/firebase_messaging.iml" filepath="$PROJECT_DIR$/.idea/modules/1603198114/firebase_messaging.iml" group="android/firebase_messaging" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/1212335310/firebase_storage.iml" filepath="$PROJECT_DIR$/.idea/modules/1212335310/firebase_storage.iml" group="android/firebase_storage" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/1278846677/flutter_audio_recorder.iml" filepath="$PROJECT_DIR$/.idea/modules/1278846677/flutter_audio_recorder.iml" group="android/flutter_audio_recorder" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1663827314/flutter_inappwebview.iml" filepath="$PROJECT_DIR$/.idea/modules/-1663827314/flutter_inappwebview.iml" group="android/flutter_inappwebview" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/630170330/flutter_keyboard_visibility.iml" filepath="$PROJECT_DIR$/.idea/modules/630170330/flutter_keyboard_visibility.iml" group="android/flutter_keyboard_visibility" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1922713445/flutter_plugin_android_lifecycle.iml" filepath="$PROJECT_DIR$/.idea/modules/-1922713445/flutter_plugin_android_lifecycle.iml" group="android/flutter_plugin_android_lifecycle" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/615177044/fluttertoast.iml" filepath="$PROJECT_DIR$/.idea/modules/615177044/fluttertoast.iml" group="android/fluttertoast" />

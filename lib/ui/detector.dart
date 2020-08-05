@@ -14,7 +14,7 @@ class Detector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    User user = Provider.of<User>(context);
+    final user = Provider.of<User>(context);
     final nav = Provider.of<ProviderNavigation>(context);
     _getUid();
 

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:share/share.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/model/commentDetail.dart';
@@ -14,6 +17,8 @@ import 'package:share_me/ui/fabElements/link.dart';
 import 'package:share_me/ui/fabElements/voice.dart';
 import 'package:share_me/ui/navigation/home/commentSheet.dart';
 import 'package:share_me/ui/navigation/search/targetProfile.dart';
+
+import 'providerFab.dart';
 
 class ProviderNavigationHome with ChangeNotifier {
 
@@ -136,7 +141,11 @@ class ProviderNavigationHome with ChangeNotifier {
     );
   }
 
-  void showPhotoOrVideoSheet(BuildContext context, List friends){
+  void showPhotoOrVideoSheet(BuildContext context, List friends, List<SharedMediaFile> files, String text){
+    var file;
+    file = files?.elementAt(0)?.path == null ? null : File(files?.elementAt(0)?.path);
+    Provider.of<ProviderFab>(context, listen: false).file = file;
+
     showMaterialModalBottomSheet(
         context: context,
         builder: (BuildContext context, ScrollController controller){
@@ -149,7 +158,7 @@ class ProviderNavigationHome with ChangeNotifier {
                         StreamProvider.value(value: Database.instance.usersByUid(friends)),
                         StreamProvider.value(value: Database.instance.currentUserData)
                       ],
-                      child: ImageOrVideo(controller: controller)
+                      child: ImageOrVideo(controller: controller, files: files, text: text)
                   )
               )
           );
@@ -157,7 +166,7 @@ class ProviderNavigationHome with ChangeNotifier {
     );
   }
 
-  void showLinkSheet(BuildContext context, List friends){
+  void showLinkSheet(BuildContext context, List friends, String url){
     showMaterialModalBottomSheet(
         context: context,
         builder: (BuildContext context, ScrollController controller){
@@ -170,7 +179,7 @@ class ProviderNavigationHome with ChangeNotifier {
                         StreamProvider.value(value: Database.instance.usersByUid(friends)),
                         StreamProvider.value(value: Database.instance.currentUserData)
                       ],
-                      child: Link(controller: controller)
+                      child: Link(controller: controller, url: url)
                   )
               )
           );

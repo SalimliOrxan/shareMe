@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/post.dart';
@@ -28,21 +31,23 @@ class _HomePageState extends State<HomePage> {
   ProviderNavigationHome _providerNavigationHome;
   List<Post> _posts;
   User _me;
-  ScrollController _scrollController;
   RefreshController _refreshController;
   TextEditingController _controllerMyComment;
+
+  StreamSubscription _intentDataStreamSubscription;
 
   @override
   void initState() {
     super.initState();
-    _scrollController    = ScrollController();
     _refreshController   = RefreshController(initialRefresh: false);
     _controllerMyComment = TextEditingController();
+
+    _initShareReceiver();
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _intentDataStreamSubscription.cancel();
     _controllerMyComment.dispose();
     super.dispose();
   }
@@ -63,19 +68,19 @@ class _HomePageState extends State<HomePage> {
 
   Widget _body(){
     return Padding(
-      padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-      child: SmartRefresher(
-        controller: _refreshController,
-        onRefresh: _onRefresh,
-        header: ClassicHeader(),
-        child: _postView()
-      )
+        padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+        child: SmartRefresher(
+            controller: _refreshController,
+            onRefresh: _onRefresh,
+            header: ClassicHeader(),
+            child: _postView()
+        )
     );
   }
 
   Widget _emptyBody(){
     return Center(
-      child: Icon(Icons.message, color: Colors.deepOrange, size: 100)
+        child: Icon(Icons.message, color: Colors.deepOrange, size: 100)
     );
   }
 
@@ -121,18 +126,18 @@ class _HomePageState extends State<HomePage> {
             onTap: () => _pressedItemsFAB(Fab.snippet)
         ),
         SpeedDialChild(
-          child: Icon(Icons.link),
-          backgroundColor: Colors.red,
-          label: 'Link',
-          labelStyle: TextStyle(fontSize: 18.0),
-          onTap: () => _pressedItemsFAB(Fab.link)
+            child: Icon(Icons.link),
+            backgroundColor: Colors.red,
+            label: 'Link',
+            labelStyle: TextStyle(fontSize: 18.0),
+            onTap: () => _pressedItemsFAB(Fab.link)
         ),
         SpeedDialChild(
-          child: Icon(Icons.image),
-          backgroundColor: Colors.blue,
-          label: 'Photo/Video',
-          labelStyle: TextStyle(fontSize: 18.0),
-          onTap: () => _pressedItemsFAB(Fab.photo)
+            child: Icon(Icons.image),
+            backgroundColor: Colors.blue,
+            label: 'Photo/Video',
+            labelStyle: TextStyle(fontSize: 18.0),
+            onTap: () => _pressedItemsFAB(Fab.photo)
         )
       ],
     );
@@ -152,123 +157,124 @@ class _HomePageState extends State<HomePage> {
 
   Widget _postItem(int position){
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10)
-        ),
-        color: Colors.black87,
-        elevation: 5,
-        child: Container(
-          padding: EdgeInsets.all(10),
-          width: double.infinity,
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Row(
+        key: UniqueKey(),
+        padding: const EdgeInsets.only(bottom: 15),
+        child: Card(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)
+            ),
+            color: Colors.black87,
+            elevation: 5,
+            child: Container(
+                padding: EdgeInsets.all(10),
+                width: double.infinity,
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          _userIcon(position),
-                          _nameAndHour(position)
-                        ]
-                    ),
-                    _more(position)
-                  ],
-                ),
-                _title(position),
-                _posts[position].fileUrl.isEmpty ? SizedBox(height: 20) : _containerData(position),
-                Container(
-                    width: double.infinity,
-                    child: Column(
-                        children: <Widget>[
-                          _reactions(position),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10, bottom: 0),
-                            child: Container(
-                                height: 0.5,
-                                width: double.infinity,
-                                color: Colors.white
-                            )
+                          Row(
+                              children: <Widget>[
+                                _userIcon(position),
+                                _nameAndHour(position)
+                              ]
                           ),
-                          _buttons(position)
-                        ]
-                    )
+                          _more(position)
+                        ],
+                      ),
+                      _title(position),
+                      _posts[position].fileUrl.isEmpty ? SizedBox(height: 20) : _containerData(position),
+                      Container(
+                          width: double.infinity,
+                          child: Column(
+                              children: <Widget>[
+                                _reactions(position),
+                                Padding(
+                                    padding: const EdgeInsets.only(top: 10, bottom: 0),
+                                    child: Container(
+                                        height: 0.5,
+                                        width: double.infinity,
+                                        color: Colors.white
+                                    )
+                                ),
+                                _buttons(position)
+                              ]
+                          )
+                      )
+                    ]
                 )
-              ]
-          )
+            )
         )
-      )
     );
   }
 
   Widget _postHiddenItem(int position){
     return Card(
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10)
-      ),
-      color: Colors.black87,
-      elevation: 5,
-      child: Container(
-        padding: EdgeInsets.all(10),
-        height: 50,
-        width: double.infinity,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              'This post is hidden',
-              style: TextStyle(color: Colors.white)
-            ),
-            InkWell(
-              onTap: () => _providerNavigationHome.showPost(_me, _posts[position].postId),
-              child: Container(
-                height: 30,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                      'show',
-                      style: TextStyle(color: Colors.blueAccent)
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10)
+        ),
+        color: Colors.black87,
+        elevation: 5,
+        child: Container(
+            padding: EdgeInsets.all(10),
+            height: 50,
+            width: double.infinity,
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                      'This post is hidden',
+                      style: TextStyle(color: Colors.white)
                   ),
-                ),
-              ),
+                  InkWell(
+                    onTap: () => _providerNavigationHome.showPost(_me, _posts[position].postId),
+                    child: Container(
+                      height: 30,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                            'show',
+                            style: TextStyle(color: Colors.blueAccent)
+                        ),
+                      ),
+                    ),
+                  )
+                ]
             )
-          ]
         )
-      )
     );
   }
 
   Widget _userIcon(int position){
     return Padding(
-      padding: const EdgeInsets.only(right: 5),
-      child: GestureDetector(
-        onTap: () => _providerNavigationHome.openProfile(context, _posts[position].uid),
-        child: _posts.elementAt(position).userImg.isEmpty
-            ? Container(width: 40, height: 40, child: icUser)
-            : CachedNetworkImage(
-            imageUrl: _posts.elementAt(position).userImg,
-            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-            errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
-            fit: BoxFit.cover,
-            filterQuality: FilterQuality.none,
-            imageBuilder: (context, imageProvider){
-              return Container(
-                  width: 40,
-                  height: 38,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                          image: imageProvider,
-                          fit: BoxFit.cover
+        padding: const EdgeInsets.only(right: 5),
+        child: GestureDetector(
+            onTap: () => _providerNavigationHome.openProfile(context, _posts[position].uid),
+            child: _posts.elementAt(position).userImg.isEmpty
+                ? Container(width: 40, height: 40, child: icUser)
+                : CachedNetworkImage(
+                imageUrl: _posts.elementAt(position).userImg,
+                placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.none,
+                imageBuilder: (context, imageProvider){
+                  return Container(
+                      width: 40,
+                      height: 38,
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                              image: imageProvider,
+                              fit: BoxFit.cover
+                          )
                       )
-                  )
-              );
-            }
+                  );
+                }
+            )
         )
-      )
     );
   }
 
@@ -305,15 +311,15 @@ class _HomePageState extends State<HomePage> {
         _providerNavigationHome.maxLines = _providerNavigationHome.maxLines == 5 ? 20 : 5;
       },
       child: Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: Text(
-            _posts[positionPost].title,
-            maxLines: _providerNavigationHome.maxLines,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                color: Colors.white
-            )
-        )
+          padding: const EdgeInsets.only(top: 10),
+          child: Text(
+              _posts[positionPost].title,
+              maxLines: _providerNavigationHome.maxLines,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: Colors.white
+              )
+          )
       ),
     );
   }
@@ -324,38 +330,38 @@ class _HomePageState extends State<HomePage> {
       width: 30,
       color: Colors.transparent,
       child: PopupMenuButton(
-            onSelected: (value) => _pressedItemsPopup(value, _posts[positionPost]),
-            color: colorApp,
-            icon: Icon(Icons.more_vert, color: Colors.white),
-            itemBuilder: (BuildContext context){
-              return <PopupMenuEntry<String>>[
-                _posts[positionPost].uid == _me.uid ? PopupMenuItem(
-                    height: 25,
-                    value: 'Delete',
-                    child: Text(
-                        'Delete',
-                        style: TextStyle(fontSize: 12, color: Colors.white)
-                    )
-                ) : null,
-                PopupMenuItem(
-                    height: 25,
-                    value: 'Hide',
-                    child: Text(
-                        'Hide',
-                        style: TextStyle(fontSize: 12, color: Colors.white)
-                    )
-                ),
-                PopupMenuItem(
-                    height: 25,
-                    value: 'Ban',
-                    child: Text(
-                        'Never see this post',
-                        style: TextStyle(fontSize: 12, color: Colors.white)
-                    )
-                )
-              ];
-            }
-        ),
+          onSelected: (value) => _pressedItemsPopup(value, _posts[positionPost]),
+          color: colorApp,
+          icon: Icon(Icons.more_vert, color: Colors.white),
+          itemBuilder: (BuildContext context){
+            return <PopupMenuEntry<String>>[
+              _posts[positionPost].uid == _me.uid ? PopupMenuItem(
+                  height: 25,
+                  value: 'Delete',
+                  child: Text(
+                      'Delete',
+                      style: TextStyle(fontSize: 12, color: Colors.white)
+                  )
+              ) : null,
+              PopupMenuItem(
+                  height: 25,
+                  value: 'Hide',
+                  child: Text(
+                      'Hide',
+                      style: TextStyle(fontSize: 12, color: Colors.white)
+                  )
+              ),
+              PopupMenuItem(
+                  height: 25,
+                  value: 'Ban',
+                  child: Text(
+                      'Never see this post',
+                      style: TextStyle(fontSize: 12, color: Colors.white)
+                  )
+              )
+            ];
+          }
+      ),
     );
   }
 
@@ -375,7 +381,7 @@ class _HomePageState extends State<HomePage> {
                   Icons.music_note,
                   color: Colors.pinkAccent,
                   size: 60
-              ),
+              )
             )
         );
         break;
@@ -384,7 +390,7 @@ class _HomePageState extends State<HomePage> {
       case Fab.snippet:
         break;
       case Fab.link:
-        if(_posts.elementAt(position).fileUrl.contains('youtube')){
+        if(_posts.elementAt(position).fileUrl.contains('youtu')){
           view = AspectRatio(
               aspectRatio: 16 / 9,
               child: YoutubeView(url: _posts.elementAt(position).fileUrl)
@@ -408,8 +414,8 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.only(top: 20, bottom: 20),
         width: double.infinity,
         child: GestureDetector(
-          onTap: () => _pressedPostData(type, position),
-          child: view
+            onTap: () => _pressedPostData(type, position),
+            child: view
         )
     );
   }
@@ -508,26 +514,26 @@ class _HomePageState extends State<HomePage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           GestureDetector(
-            onTap: () => _providerNavigationHome.like(_posts[position]),
-            child: Container(
-                color: Colors.transparent,
-                padding: EdgeInsets.fromLTRB(5, 10, 5, 5),
-                child: Row(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.only(right: 3),
-                        child: Icon(hasStar ? Icons.star : Icons.star_border, color: hasStar ? Colors.blueAccent : Colors.white, size: 17)
-                      ),
-                      Text(
-                          'Star',
-                          style: TextStyle(
-                              color: _posts[position].likedUsers.contains(_me.uid) ? Colors.blueAccent : Colors.white,
-                              fontSize: 12
-                          )
-                      )
-                    ]
-                )
-            )
+              onTap: () => _providerNavigationHome.like(_posts[position]),
+              child: Container(
+                  color: Colors.transparent,
+                  padding: EdgeInsets.fromLTRB(5, 10, 5, 5),
+                  child: Row(
+                      children: <Widget>[
+                        Padding(
+                            padding: const EdgeInsets.only(right: 3),
+                            child: Icon(hasStar ? Icons.star : Icons.star_border, color: hasStar ? Colors.blueAccent : Colors.white, size: 17)
+                        ),
+                        Text(
+                            'Star',
+                            style: TextStyle(
+                                color: _posts[position].likedUsers.contains(_me.uid) ? Colors.blueAccent : Colors.white,
+                                fontSize: 12
+                            )
+                        )
+                      ]
+                  )
+              )
           ),
           GestureDetector(
             onTap: () => _providerNavigationHome.showCommentsBottomSheet(context, _posts[position]),
@@ -552,26 +558,26 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           GestureDetector(
-            onTap: () => _providerNavigationHome.share(_posts[position].fileUrl),
-            child: Container(
-              color: Colors.transparent,
-              padding: EdgeInsets.fromLTRB(5, 10, 5, 5),
-              child: Row(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(right: 3),
-                      child: Icon(Icons.share, color: Colors.white, size: 17),
-                    ),
-                    Text(
-                        'Share',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12
+              onTap: () => _providerNavigationHome.share(_posts[position].fileUrl),
+              child: Container(
+                  color: Colors.transparent,
+                  padding: EdgeInsets.fromLTRB(5, 10, 5, 5),
+                  child: Row(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(right: 3),
+                          child: Icon(Icons.share, color: Colors.white, size: 17),
+                        ),
+                        Text(
+                            'Share',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12
+                            )
                         )
-                    )
-                  ]
+                      ]
+                  )
               )
-            )
           )
         ]
     );
@@ -621,6 +627,42 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _initShareReceiver(){
+    // For sharing images coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream().listen((List<SharedMediaFile> files) {
+      if(files != null){
+        _providerNavigationHome.showPhotoOrVideoSheet(context, _me?.friends, files, null);
+      }
+    }, onError: (err) {
+      print("getIntentDataStream error: $err");
+    });
+
+    // For sharing images coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialMedia().then((List<SharedMediaFile> files) {
+      if(files != null){
+        _providerNavigationHome.showPhotoOrVideoSheet(context, _me?.friends, files, null);
+      }
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription = ReceiveSharingIntent.getTextStream().listen((String text) {
+      if(text != null){
+        text.contains('http')
+            ? _providerNavigationHome.showLinkSheet(context, _me?.friends, text)
+            : _providerNavigationHome.showPhotoOrVideoSheet(context, _me?.friends, null, text);
+      }
+    }, onError: (err) {
+      print("getLinkStream error: $err");
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialText().then((String text) {
+      if(text != null){
+        _providerNavigationHome.showPhotoOrVideoSheet(context, _me?.friends, null, text);
+      }
+    });
+  }
+
   void _pressedItemsFAB(Fab status){
     switch(status){
       case Fab.audio:
@@ -631,13 +673,13 @@ class _HomePageState extends State<HomePage> {
       case Fab.snippet:
         break;
       case Fab.link:
-        _providerNavigationHome.showLinkSheet(context, _me.friends);
+        _providerNavigationHome.showLinkSheet(context, _me.friends, null);
         break;
       case Fab.video:
-        _providerNavigationHome.showPhotoOrVideoSheet(context, _me.friends);
+        _providerNavigationHome.showPhotoOrVideoSheet(context, _me.friends, null, null);
         break;
       case Fab.photo:
-        _providerNavigationHome.showPhotoOrVideoSheet(context, _me.friends);
+        _providerNavigationHome.showPhotoOrVideoSheet(context, _me.friends, null, null);
         break;
     }
   }

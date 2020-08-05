@@ -33,11 +33,6 @@ class _VideoViewState extends State<VideoView> {
     );
   }
 
-  @override
-  void deactivate() {
-    _chewieController.pause();
-    super.deactivate();
-  }
 
   @override
   void dispose() {

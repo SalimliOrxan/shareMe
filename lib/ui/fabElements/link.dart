@@ -13,7 +13,8 @@ import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 class Link extends StatefulWidget {
 
   final ScrollController controller;
-  Link({@required this.controller});
+  final String url;
+  Link({@required this.controller, @required this.url});
 
   @override
   _LinkState createState() => _LinkState();
@@ -25,14 +26,18 @@ class _LinkState extends State<Link> {
   ProviderFab _providerFab;
   List<User>_friendsData;
   User _me;
+  GlobalKey<ScaffoldState>_keyScaffold;
   TextEditingController _controllerTitle;
   TextEditingController _controllerUrl;
 
   @override
   void initState() {
+    _keyScaffold     = GlobalKey();
     _controllerTitle = TextEditingController();
     _controllerUrl   = TextEditingController();
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _controllerUrl.text = widget.url);
   }
 
   @override
@@ -49,6 +54,7 @@ class _LinkState extends State<Link> {
     _me          = Provider.of<User>(context);
 
     return Scaffold(
+        key: _keyScaffold,
         backgroundColor: colorApp,
         body: _body()
     );
@@ -144,26 +150,28 @@ class _LinkState extends State<Link> {
 
 
   void _post() async {
-    showLoading(context);
+    if(_controllerUrl.text.trim().isNotEmpty){
+      showLoading(context);
 
-    Post newPost = Post();
-    newPost.uid      = _me.uid;
-    newPost.fullName = _me.fullName;
-    newPost.userImg  = _me.imgProfile;
-    newPost.title    = _controllerTitle.text.trim();
-    newPost.fileUrl  = _controllerUrl.text.trim();
-    newPost.fileType = Fab.link.toString();
+      Post newPost = Post();
+      newPost.uid      = _me.uid;
+      newPost.fullName = _me.fullName;
+      newPost.userImg  = _me.imgProfile;
+      newPost.title    = _controllerTitle.text.trim();
+      newPost.fileUrl  = _controllerUrl.text.trim();
+      newPost.fileType = Fab.link.toString();
 
-    String postId = await Database.instance.createPost(newPost, null);
-    await Database.instance.createComments(Comment()..commentId = postId);
-    await Database.instance.updateUserData(_me..posts.add(postId));
+      String postId = await Database.instance.createPost(newPost, null);
+      await Database.instance.createComments(Comment()..commentId = postId);
+      await Database.instance.updateUserData(_me..posts.add(postId));
 
-    Navigator.pop(context);
-    Navigator.pop(context);
+      Navigator.pop(context);
+      Navigator.pop(context);
 
-    for(int i=0; i<_me.friends.length; i++){
-      _friendsData[i].posts.add(postId);
-      await Database.instance.updateOtherUser(_friendsData[i]);
-    }
+      for(int i=0; i<_me.friends.length; i++){
+        _friendsData[i].posts.add(postId);
+        await Database.instance.updateOtherUser(_friendsData[i]);
+      }
+    } else showSnackBar(_keyScaffold, 'Add url', true);
   }
 }

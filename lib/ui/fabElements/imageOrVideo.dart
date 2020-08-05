@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/comment.dart';
@@ -10,13 +13,16 @@ import 'package:share_me/provider/providerFab.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 import 'package:share_me/ui/navigation/home/videoView.dart';
+import 'package:path/path.dart' as path;
 
 enum FileFormat{IMAGE, VIDEO, VIDEO_RECORD}
 
 class ImageOrVideo extends StatefulWidget {
 
   final ScrollController controller;
-  ImageOrVideo({@required this.controller});
+  final List<SharedMediaFile> files;
+  final String text;
+  ImageOrVideo({@required this.controller, @required this.files, @required this.text});
 
   @override
   _ImageOrVideoState createState() => _ImageOrVideoState();
@@ -34,9 +40,13 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
   @override
   void initState() {
     super.initState();
-    _fileFormat = FileFormat.IMAGE;
     _controllerTitle = TextEditingController();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _providerFab.file = null);
+    String path = widget.files?.elementAt(0)?.path;
+    _initFileFormat(path);
+
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _controllerTitle.text = widget.text ?? '';
+    });
   }
 
   @override
@@ -60,18 +70,18 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
 
   Widget _body(){
     return Padding(
-      padding: const EdgeInsets.all(18.0),
-      child: SingleChildScrollView(
-        controller: widget.controller,
-        child: Column(
-            children: <Widget>[
-              _titleField(),
-              _fileContainer(),
-              _pickButtons(),
-              _postButton()
-            ]
+        padding: const EdgeInsets.all(18.0),
+        child: SingleChildScrollView(
+            controller: widget.controller,
+            child: Column(
+                children: <Widget>[
+                  _titleField(),
+                  _fileContainer(),
+                  _pickButtons(),
+                  _postButton()
+                ]
+            )
         )
-      )
     );
   }
 
@@ -97,28 +107,28 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
           minLines: 1,
           maxLines: 3,
           keyboardType: TextInputType.multiline
-      ),
+      )
     );
   }
 
   Widget _fileContainer(){
     return Padding(
-      padding: const EdgeInsets.only(top: 20),
-      child: AspectRatio(
-        aspectRatio: 4 / 3,
-        child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: Colors.transparent
-            ),
-            child: _providerFab.file == null
-                ? Icon(Icons.image, size: 250, color: Colors.blueGrey)
-                : _fileFormat == FileFormat.IMAGE
-                ? ClipRRect(child: Image.file(_providerFab.file, fit: BoxFit.cover), borderRadius: BorderRadius.circular(5))
-                : ClipRRect(borderRadius: BorderRadius.circular(5), child: VideoView(url: null, file: _providerFab.file))
-        ),
-      )
+        padding: const EdgeInsets.only(top: 20),
+        child: AspectRatio(
+          aspectRatio: 4 / 3,
+          child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: Colors.transparent
+              ),
+              child: _providerFab.file == null
+                  ? Icon(Icons.image, size: 250, color: Colors.blueGrey)
+                  : _fileFormat == FileFormat.IMAGE
+                  ? ClipRRect(child: Image.file(_providerFab.file, fit: BoxFit.cover), borderRadius: BorderRadius.circular(5))
+                  : ClipRRect(borderRadius: BorderRadius.circular(5), child: VideoView(url: null, file: _providerFab.file))
+          ),
+        )
     );
   }
 
@@ -126,65 +136,65 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
     return Padding(
         padding: const EdgeInsets.only(top: 20),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                IconButton(
-                    onPressed: () async {
-                      final file = await pickImage(false);
-                      if(file != null){
-                        _fileFormat = FileFormat.IMAGE;
-                        _providerFab.file = file;
-                      }
-                    },
-                    icon: Icon(Icons.image, size: 35, color: Colors.white)
-                ),
-                IconButton(
-                    onPressed: () async {
-                      final file = await pickImage(true);
-                      if(file != null){
-                        _fileFormat = FileFormat.IMAGE;
-                        _providerFab.file = file;
-                      }
-                    },
-                    icon: Icon(Icons.camera_alt, size: 35, color: Colors.white)
-                )
-              ]
-            ),
-            IconButton(
-                onPressed: _deleteFile,
-                icon: Icon(Icons.delete, size: 35, color: Colors.white)
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                IconButton(
-                    onPressed: () async {
-                      _deleteFile();
-                      final file = await pickVideo(false);
-                      if(file != null){
-                        _fileFormat = FileFormat.VIDEO;
-                        _providerFab.file = file;
-                      }
-                    },
-                    icon: Icon(Icons.video_library, size: 35, color: Colors.white)
-                ),
-                IconButton(
-                    onPressed: () async {
-                      _deleteFile();
-                      final file = await pickVideo(true);
-                      if(file != null){
-                        _fileFormat = FileFormat.VIDEO_RECORD;
-                        _providerFab.file = file;
-                      }
-                    },
-                    icon: Icon(Icons.videocam, size: 35, color: Colors.white)
-                )
-              ]
-            )
-          ]
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    IconButton(
+                        onPressed: () async {
+                          final file = await pickImage(false);
+                          if(file != null){
+                            _fileFormat = FileFormat.IMAGE;
+                            _providerFab.file = file;
+                          }
+                        },
+                        icon: Icon(Icons.image, size: 35, color: Colors.white)
+                    ),
+                    IconButton(
+                        onPressed: () async {
+                          final file = await pickImage(true);
+                          if(file != null){
+                            _fileFormat = FileFormat.IMAGE;
+                            _providerFab.file = file;
+                          }
+                        },
+                        icon: Icon(Icons.camera_alt, size: 35, color: Colors.white)
+                    )
+                  ]
+              ),
+              IconButton(
+                  onPressed: _deleteFile,
+                  icon: Icon(Icons.delete, size: 35, color: Colors.white)
+              ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    IconButton(
+                        onPressed: () async {
+                          _deleteFile();
+                          final file = await pickVideo(false);
+                          if(file != null){
+                            _fileFormat = FileFormat.VIDEO;
+                            _providerFab.file = file;
+                          }
+                        },
+                        icon: Icon(Icons.video_library, size: 35, color: Colors.white)
+                    ),
+                    IconButton(
+                        onPressed: () async {
+                          _deleteFile();
+                          final file = await pickVideo(true);
+                          if(file != null){
+                            _fileFormat = FileFormat.VIDEO_RECORD;
+                            _providerFab.file = file;
+                          }
+                        },
+                        icon: Icon(Icons.videocam, size: 35, color: Colors.white)
+                    )
+                  ]
+              )
+            ]
         )
     );
   }
@@ -237,5 +247,19 @@ class _ImageOrVideoState extends State<ImageOrVideo> {
   void _deleteFile(){
     _fileFormat = FileFormat.IMAGE;
     _providerFab.file = null;
+  }
+
+  void _initFileFormat(String filePath){
+    if(filePath != null){
+      _fileFormat = FileFormat.VIDEO;
+      List<String>typesImage = ['jpeg', 'jpg', 'png', 'webP'];
+
+      for(String extension in typesImage){
+        if(path.extension(File(filePath).path).contains(extension)){
+          _fileFormat = FileFormat.IMAGE;
+          break;
+        }
+      }
+    } else _fileFormat = FileFormat.IMAGE;
   }
 }

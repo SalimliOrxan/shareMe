@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _emptyBody(){
     return Center(
-        child: Icon(Icons.message, color: Colors.deepOrange, size: 100)
+        child: Icon(Icons.share, color: Colors.deepOrange, size: 100)
     );
   }
 

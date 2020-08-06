@@ -114,7 +114,15 @@ class _NavigationPageState extends State<NavigationPage> {
               child: HomePage()
           )
       );
-      _pages.add(ChatPage());
+      _pages.add(
+          MultiProvider(
+              providers: [
+                StreamProvider.value(value: Database.instance.usersByUid(_me?.friends ?? [])),
+                StreamProvider.value(value: Database.instance.getChats(_me?.chats?.values?.toList() ?? []))
+              ],
+              child: ChatPage()
+          )
+      );
       _pages.add(SearchPage());
       _pages.add(
           StreamProvider.value(

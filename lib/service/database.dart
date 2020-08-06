@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_me/model/comment.dart';
+import 'package:share_me/model/message.dart';
 import 'package:share_me/model/post.dart';
 import 'package:share_me/model/targetUser.dart';
 import 'package:share_me/model/user.dart';
@@ -17,6 +18,7 @@ class Database {
   final CollectionReference _collectionUsers    = Firestore.instance.collection('users');
   final CollectionReference _collectionPosts    = Firestore.instance.collection('posts');
   final CollectionReference _collectionComments = Firestore.instance.collection('comments');
+  final CollectionReference _collectionChat     = Firestore.instance.collection('chat');
   DocumentReference _currentUserRef;
 
 
@@ -66,6 +68,23 @@ class Database {
   Future<void>updateComments(Comment comment) async {
     DocumentReference docRef = _collectionComments.document(comment.commentId);
     return await docRef.updateData(comment.toMap());
+  }
+
+  Future<String>createChat(Message chat) async {
+    DocumentReference docRef = _collectionChat.document();
+    chat.chatId = docRef.documentID;
+    await docRef.setData(chat.toMap());
+    return chat.chatId;
+  }
+
+  Future<void>updateChat(Message chat) async {
+    DocumentReference docRef = _collectionChat.document(chat.chatId);
+    await docRef.updateData(chat.toMap());
+  }
+
+  Future<void>deleteChat(Message chat) async {
+    DocumentReference docRef = _collectionChat.document(chat.chatId);
+    await docRef.delete();
   }
 
 
@@ -119,5 +138,20 @@ class Database {
         .document(idPost)
         .snapshots()
         .map((comment) => Comment.fromMap(comment.data));
+  }
+
+  Stream<List<Message>>getChats(List idChats){
+    return _collectionChat.snapshots().map((event){
+      return event.documents.where((doc) => idChats.contains(doc.documentID)).map((doc){
+        return Message.fromMap(doc.data);
+      }).toList();
+    });
+  }
+
+  Stream<Message>getChatById(String id){
+    return _collectionChat
+        .document(id)
+        .snapshots()
+        .map((chat) => Message.fromMap(chat.data));
   }
 }

@@ -11,12 +11,14 @@ class User {
   String passwordAgain;
   String imgCover;
   String imgProfile;
-  int countNotification = 0;
-  List<dynamic> friends = [];
+  int countNotification        = 0;
+  List<dynamic> friends        = [];
   List<dynamic> followRequests = [];
-  List<dynamic> searchKeys = [];
-  List<dynamic> posts = [];
-  List<dynamic> postsHidden = [];
+  List<dynamic> searchKeys     = [];
+  List<dynamic> posts          = [];
+  List<dynamic> postsHidden    = [];
+  Map<String, dynamic> chats           = Map<String, dynamic>();
+  Map<String, dynamic> chatsVisibility = Map<String, dynamic>();
 
   User({
     this.uid,
@@ -33,7 +35,9 @@ class User {
     this.followRequests,
     this.searchKeys,
     this.posts,
-    this.postsHidden
+    this.postsHidden,
+    this.chats,
+    this.chatsVisibility
   });
 
   Map<String, dynamic> toMap(){
@@ -51,7 +55,9 @@ class User {
       'followRequests':    followRequests,
       'searchKeys':        searchKeys,
       'posts':             posts,
-      'postsHidden':       postsHidden
+      'postsHidden':       postsHidden,
+      'chats':             chats,
+      'chatsVisibility':   chatsVisibility
     };
   }
 
@@ -70,5 +76,7 @@ class User {
     this.searchKeys        = map['searchKeys'] ?? List<dynamic>();
     this.posts             = map['posts'] ?? List<dynamic>();
     this.postsHidden       = map['postsHidden'] ?? List<dynamic>();
+    this.chats             = map['chats'] ?? Map<String, dynamic>();
+    this.chatsVisibility   = map['chatsVisibility'] ?? Map<String, dynamic>();
   }
 }

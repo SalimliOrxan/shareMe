@@ -22,6 +22,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1566639471/path_provider.iml" filepath="$PROJECT_DIR$/.idea/modules/-1566639471/path_provider.iml" group="android/path_provider" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/745816501/path_provider_linux.iml" filepath="$PROJECT_DIR$/.idea/modules/745816501/path_provider_linux.iml" group="android/path_provider_linux" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/1239561592/path_provider_macos.iml" filepath="$PROJECT_DIR$/.idea/modules/1239561592/path_provider_macos.iml" group="android/path_provider_macos" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1818275160/receive_sharing_intent.iml" filepath="$PROJECT_DIR$/.idea/modules/-1818275160/receive_sharing_intent.iml" group="android/receive_sharing_intent" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/409540574/share.iml" filepath="$PROJECT_DIR$/.idea/modules/409540574/share.iml" group="android/share" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1483926008/sqflite.iml" filepath="$PROJECT_DIR$/.idea/modules/-1483926008/sqflite.iml" group="android/sqflite" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/2048046826/video_player.iml" filepath="$PROJECT_DIR$/.idea/modules/2048046826/video_player.iml" group="android/video_player" />

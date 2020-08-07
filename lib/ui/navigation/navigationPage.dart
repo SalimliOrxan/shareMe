@@ -118,7 +118,7 @@ class _NavigationPageState extends State<NavigationPage> {
           MultiProvider(
               providers: [
                 StreamProvider.value(value: Database.instance.usersByUid(_me?.friends ?? [])),
-                StreamProvider.value(value: Database.instance.getChats(_me?.chats?.values?.toList() ?? []))
+                StreamProvider.value(value: Database.instance.getChats(_me?.chats ?? []))
               ],
               child: ChatPage()
           )

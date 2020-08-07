@@ -8,6 +8,7 @@ class ProviderNavigation with ChangeNotifier {
   String _time           = '60';
   bool _visibleButton    = true;
   bool _isFcmInitialised = false;
+  List<int>_selectedChatUserPositions = [];
 
 
 
@@ -55,6 +56,23 @@ class ProviderNavigation with ChangeNotifier {
 
   set isFcmInitialised(bool value) {
     _isFcmInitialised = value;
+    notifyListeners();
+  }
+
+  List<int> get selectedChatUserPositions => _selectedChatUserPositions;
+
+  set selectedChatUserPositions(List<int> value) {
+    _selectedChatUserPositions = value;
+    notifyListeners();
+  }
+
+  void addSelectedChatUserPositions(int value) {
+    _selectedChatUserPositions.add(value);
+    notifyListeners();
+  }
+
+  void removeSelectedChatUserPositions(int value) {
+    _selectedChatUserPositions.remove(value);
     notifyListeners();
   }
 }

@@ -35,12 +35,7 @@ class _NotificationState extends State<NotificationPage> {
 
 
   Widget _body(){
-    return SafeArea(
-        child: Padding(
-            padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-            child: _notifications()
-        )
-    );
+    return _notifications();
   }
 
   Widget _notifications(){
@@ -60,7 +55,7 @@ class _NotificationState extends State<NotificationPage> {
         itemCount: _requestedUsers.length,
         itemBuilder: (context, position){
           return GestureDetector(
-              onTap: () => _itemFollowClicked(position),
+              onTap: () => _followClicked(position),
               child: _itemFollow(position)
           );
         }
@@ -133,7 +128,7 @@ class _NotificationState extends State<NotificationPage> {
     );
   }
 
-  void _itemFollowClicked(int position){
+  void _followClicked(int position){
     String uid = _requestedUsers.elementAt(position).uid;
     showMaterialModalBottomSheet(
         context: context,

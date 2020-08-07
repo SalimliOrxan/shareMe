@@ -17,8 +17,9 @@ class User {
   List<dynamic> searchKeys     = [];
   List<dynamic> posts          = [];
   List<dynamic> postsHidden    = [];
-  Map<String, dynamic> chats           = Map<String, dynamic>();
-  Map<String, dynamic> chatsVisibility = Map<String, dynamic>();
+  List<dynamic> chats          = [];
+  List<dynamic> deletedChats   = [];
+  Map<String, dynamic> chattedFriends = Map<String, dynamic>();
 
   User({
     this.uid,
@@ -37,7 +38,8 @@ class User {
     this.posts,
     this.postsHidden,
     this.chats,
-    this.chatsVisibility
+    this.deletedChats,
+    this.chattedFriends
   });
 
   Map<String, dynamic> toMap(){
@@ -57,7 +59,8 @@ class User {
       'posts':             posts,
       'postsHidden':       postsHidden,
       'chats':             chats,
-      'chatsVisibility':   chatsVisibility
+      'deletedChats':      deletedChats,
+      'chattedFriends':    chattedFriends
     };
   }
 
@@ -76,7 +79,8 @@ class User {
     this.searchKeys        = map['searchKeys'] ?? List<dynamic>();
     this.posts             = map['posts'] ?? List<dynamic>();
     this.postsHidden       = map['postsHidden'] ?? List<dynamic>();
-    this.chats             = map['chats'] ?? Map<String, dynamic>();
-    this.chatsVisibility   = map['chatsVisibility'] ?? Map<String, dynamic>();
+    this.chats             = map['chats'] ?? List<dynamic>();
+    this.deletedChats      = map['deletedChats'] ?? List<dynamic>();
+    this.chattedFriends    = map['chattedFriends'] ?? Map<String, dynamic>();
   }
 }

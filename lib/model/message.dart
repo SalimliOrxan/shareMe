@@ -1,59 +1,67 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:share_me/model/messageDetail.dart';
 
+import 'chatUser.dart';
+
 class Message {
 
   String chatId;
+  String groupName;
+  String groupImg;
   String senderId;
-  String receiverId;
   String senderImg;
-  String receiverImg;
   String senderName;
-  String receiverName;
   Timestamp date;
   List<MessageDetail> messagesForRead = [];
   List<dynamic> messagesForWrite      = [];
+  List<MyChatUser> usersForRead       = [];
+  List<dynamic> usersForWrite         = [];
 
   Message({
     this.chatId,
+    this.groupName,
+    this.groupImg,
     this.senderId,
-    this.receiverId,
     this.senderImg,
-    this.receiverImg,
     this.senderName,
-    this.receiverName,
     this.date,
-    this.messagesForWrite
+    this.messagesForWrite,
+    this.usersForWrite
   });
 
   Map<String, dynamic> toMap(){
     return {
       'chatId':       chatId,
+      'groupName':    groupName,
+      'groupImg':     groupImg,
       'senderId':     senderId,
-      'receiverId':   receiverId,
       'senderImg':    senderImg,
-      'receiverImg':  receiverImg,
       'senderName':   senderName,
-      'receiverName': receiverName,
       'date':         date,
-      'messages':     messagesForWrite
+      'messages':     messagesForWrite,
+      'users':        usersForWrite
     };
   }
 
   Message.fromMap(map){
     this.chatId           = map['chatId'] ?? '';
+    this.groupName        = map['groupName'] ?? '';
+    this.groupImg         = map['groupImg'] ?? '';
     this.senderId         = map['senderId'] ?? '';
-    this.receiverId       = map['receiverId'] ?? '';
     this.senderImg        = map['senderImg'] ?? '';
-    this.receiverImg      = map['receiverImg'] ?? '';
     this.senderName       = map['senderName'] ?? '';
-    this.receiverName     = map['receiverName'] ?? '';
     this.date             = map['date'] ?? Timestamp.now();
     this.messagesForWrite = map['messages'] ?? List<dynamic>();
+    this.usersForWrite    = map['users'] ?? List<dynamic>();
 
     messagesForRead = [];
     messagesForWrite.forEach((element){
       messagesForRead.add(MessageDetail.fromMap(element));
+    });
+
+    usersForRead = [];
+    usersForWrite.forEach((chatUser){
+      usersForRead.add(MyChatUser.fromMap(chatUser));
     });
   }
 }

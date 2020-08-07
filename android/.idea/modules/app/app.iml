@@ -187,6 +187,7 @@
     <orderEntry type="module" module-name="firebase_auth_web" />
     <orderEntry type="module" module-name="flutter_audio_recorder" />
     <orderEntry type="module" module-name="flutter_keyboard_visibility" />
+    <orderEntry type="module" module-name="receive_sharing_intent" />
     <orderEntry type="module" module-name="firebase_messaging" />
     <orderEntry type="module" module-name="firebase_core" />
     <orderEntry type="module" module-name="share" />

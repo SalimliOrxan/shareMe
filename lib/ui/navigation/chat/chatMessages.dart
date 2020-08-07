@@ -12,8 +12,8 @@ import 'package:share_me/service/database.dart';
 class ChatMessages extends StatefulWidget {
 
   final User me;
-  final User receiver;
-  ChatMessages({@required this.me, @required this.receiver});
+  final List<User> receivers;
+  ChatMessages({@required this.me, @required this.receivers});
 
   @override
   _ChatMessagesState createState() => _ChatMessagesState();
@@ -109,8 +109,44 @@ class _ChatMessagesState extends State<ChatMessages> {
 
     await Database.instance.updateChat(_chat);
 
-    if(!widget.receiver.chatsVisibility[widget.me.uid]){
-      await Database.instance.updateOtherUser(widget.receiver..chatsVisibility[widget.me.uid] = true);
-    }
+    print(widget.receivers.length.toString());
+    widget.receivers.forEach((user) async {
+      print(_chat.chatId);
+      if(user.deletedChats.contains(_chat.chatId)){
+        await Database.instance.updateOtherUser(user..deletedChats.remove(_chat.chatId));
+      }
+    });
+  }
+
+  Future<void>_showGroupDialog() async {
+    await showDialog(
+        context: context,
+        builder: (BuildContext _context){
+          return Scaffold(
+              body: Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+
+                        Container(
+                          height: 30,
+                          width: 50,
+                          child: RaisedButton(
+                            onPressed: (){
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              'ok',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            color: Colors.deepOrange,
+                          ),
+                        )
+                      ]
+                  )
+              )
+          );
+        }
+    );
   }
 }

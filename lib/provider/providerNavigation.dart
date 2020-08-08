@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:share_me/model/user.dart';
 
 class ProviderNavigation with ChangeNotifier {
 
@@ -8,7 +11,10 @@ class ProviderNavigation with ChangeNotifier {
   String _time           = '60';
   bool _visibleButton    = true;
   bool _isFcmInitialised = false;
+
   List<int>_selectedChatUserPositions = [];
+  List<User>_friendsIsNotInChat = [];
+  File _groupIcon;
 
 
 
@@ -59,12 +65,31 @@ class ProviderNavigation with ChangeNotifier {
     notifyListeners();
   }
 
+
   List<int> get selectedChatUserPositions => _selectedChatUserPositions;
 
   set selectedChatUserPositions(List<int> value) {
     _selectedChatUserPositions = value;
     notifyListeners();
   }
+
+
+  List<User> get friendsIsNotInChat => _friendsIsNotInChat;
+
+  set friendsIsNotInChat(List<User> value) {
+    _friendsIsNotInChat = value;
+    notifyListeners();
+  }
+
+
+  File get groupIcon => _groupIcon;
+
+  set groupIcon(File value) {
+    _groupIcon = value;
+    notifyListeners();
+  }
+
+
 
   void addSelectedChatUserPositions(int value) {
     _selectedChatUserPositions.add(value);
@@ -73,6 +98,10 @@ class ProviderNavigation with ChangeNotifier {
 
   void removeSelectedChatUserPositions(int value) {
     _selectedChatUserPositions.remove(value);
+    notifyListeners();
+  }
+
+  void refresh(){
     notifyListeners();
   }
 }

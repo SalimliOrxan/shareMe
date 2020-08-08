@@ -8,6 +8,7 @@ import 'package:share_me/model/message.dart';
 import 'package:share_me/model/messageDetail.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/service/database.dart';
+import 'package:share_me/ui/navigation/chat/groupInfo.dart';
 
 class ChatMessages extends StatefulWidget {
 
@@ -42,8 +43,11 @@ class _ChatMessagesState extends State<ChatMessages> {
   Widget _appBar(){
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.black26,
       actionsIconTheme: IconThemeData(color: Colors.white),
+      actions: <Widget>[
+        _more()
+      ]
     );
   }
 
@@ -74,6 +78,42 @@ class _ChatMessagesState extends State<ChatMessages> {
         user: user,
         showUserAvatar: true,
         messages: _activeMessages
+    );
+  }
+
+  Widget _more(){
+    return PopupMenuButton(
+        onSelected: _onPressedPopUp,
+        color: colorApp,
+        icon: Icon(Icons.more_vert, color: Colors.white),
+        itemBuilder: (BuildContext context){
+          return <PopupMenuEntry<String>>[
+            PopupMenuItem(
+                height: 40,
+                value: 'info',
+                child: Text(
+                    'Group info',
+                    style: TextStyle(fontSize: 14, color: Colors.white)
+                )
+            ),
+            PopupMenuItem(
+                height: 40,
+                value: 'exit',
+                child: Text(
+                    'Exit group',
+                    style: TextStyle(fontSize: 14, color: Colors.white)
+                )
+            ),
+            PopupMenuItem(
+                height: 40,
+                value: 'delete',
+                child: Text(
+                    'Delete group',
+                    style: TextStyle(fontSize: 14, color: Colors.white)
+                )
+            )
+          ];
+        }
     );
   }
 
@@ -118,35 +158,32 @@ class _ChatMessagesState extends State<ChatMessages> {
     });
   }
 
-  Future<void>_showGroupDialog() async {
-    await showDialog(
-        context: context,
-        builder: (BuildContext _context){
-          return Scaffold(
-              body: Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
+  void _onPressedPopUp(String value){
+    switch(value){
+      case 'info':
+        _openGroupInfo();
+        break;
 
-                        Container(
-                          height: 30,
-                          width: 50,
-                          child: RaisedButton(
-                            onPressed: (){
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              'ok',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            color: Colors.deepOrange,
-                          ),
-                        )
-                      ]
-                  )
-              )
-          );
-        }
+      case 'exit':
+        break;
+
+      case 'delete':
+        break;
+    }
+  }
+
+  void _openGroupInfo(){
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => MultiProvider(
+              providers: [
+                StreamProvider.value(value: Database.instance.usersByUid(widget.me.friends)),
+                StreamProvider.value(value: Database.instance.getChatById(_chat.chatId))
+              ],
+              child: GroupInfo()
+            )
+        )
     );
   }
 }

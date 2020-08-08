@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:share_me/model/message.dart';
 import 'package:share_me/model/post.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/service/auth.dart';
@@ -88,6 +89,15 @@ class Storage {
         case Fab.snippet:
           break;
       }
+    }
+  }
+
+
+  Future<void> uploadGroupIcon(File groupIcon, Message chat) async {
+    if(groupIcon != null){
+      _uploadTask     = _storage.child('images/imgGroup').child('${chat.chatId}${path.extension(groupIcon.path)}').putFile(groupIcon);
+      _downloadUrl    = await _uploadTask.onComplete;
+      chat.groupImg   = await _downloadUrl.ref.getDownloadURL();
     }
   }
 }

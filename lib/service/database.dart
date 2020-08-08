@@ -70,9 +70,10 @@ class Database {
     return await docRef.updateData(comment.toMap());
   }
 
-  Future<String>createChat(Message chat) async {
+  Future<String>createChat(Message chat, File groupIcon) async {
     DocumentReference docRef = _collectionChat.document();
     chat.chatId = docRef.documentID;
+    await Storage.instance.uploadGroupIcon(groupIcon, chat);
     await docRef.setData(chat.toMap());
     return chat.chatId;
   }

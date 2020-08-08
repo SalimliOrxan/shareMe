@@ -11,6 +11,8 @@ import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/navigation/chat/chatMessages.dart';
+import 'package:share_me/ui/navigation/chat/friendsView.dart';
+import 'package:share_me/ui/navigation/chat/groupIcon.dart';
 
 class ChatPage extends StatefulWidget {
 
@@ -24,6 +26,19 @@ class _ChatPageState extends State<ChatPage> {
   List<User> _friends, _chatUsers = [];
   List<Message> _chats;
   User _me;
+  TextEditingController _controllerGroupName;
+
+  @override
+  void initState() {
+    _controllerGroupName = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controllerGroupName.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +57,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _fab(){
     return FloatingActionButton(
-        onPressed: _showChatDialog,
+        onPressed: _showCreateChatDialog,
         child: Icon(Icons.edit)
     );
   }
@@ -80,73 +95,76 @@ class _ChatPageState extends State<ChatPage> {
     return Visibility(
         visible: !_me.deletedChats.contains(_chats[position].chatId),
         key: UniqueKey(),
-        child: Slidable(
-            actionPane: SlidableDrawerActionPane(),
-            actionExtentRatio: 0.25,
-            closeOnScroll: true,
-            child: Container(
-                width: double.infinity,
-                color: Colors.black54,
-                child: ListTile(
-                    onTap: (){
-                      _chatUsers = [];
-                      for(var chatUser in _chats.elementAt(position).usersForRead) {
-                        for(User user in _friends){
-                          if(chatUser.uid == user.uid){
-                            _chatUsers.add(user);
-                            break;
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 1),
+          child: Slidable(
+              actionPane: SlidableDrawerActionPane(),
+              actionExtentRatio: 0.25,
+              closeOnScroll: true,
+              child: Container(
+                  width: double.infinity,
+                  color: Colors.black54,
+                  child: ListTile(
+                      onTap: (){
+                        _chatUsers = [];
+                        for(var chatUser in _chats.elementAt(position).usersForRead) {
+                          for(User user in _friends){
+                            if(chatUser.uid == user.uid){
+                              _chatUsers.add(user);
+                              break;
+                            }
                           }
                         }
-                      }
-                      _itemMessagePressed(position);
-                    },
-                    contentPadding: EdgeInsets.only(left: 10, right: 10),
-                    leading: img == null || img.isEmpty
-                        ? Container(width: 40, height: 40, child: icUser)
-                        : Container(
-                        width: 40,
-                        child: CachedNetworkImage(
-                            imageUrl: img,
-                            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                            errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
-                            fit: BoxFit.cover,
-                            filterQuality: FilterQuality.none,
-                            imageBuilder: (context, imageProvider){
-                              return Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                          image: imageProvider,
-                                          fit: BoxFit.cover
-                                      )
-                                  )
-                              );
-                            }
-                        )
-                    ),
-                    trailing: Icon(Icons.keyboard_arrow_right, color: Colors.deepOrange, size: 20),
-                    title: Text(
-                        name ?? 'Group',
-                        style: TextStyle(color: Colors.white)
-                    ),
-                    subtitle: Text(
-                        _chats.elementAt(position).date.toDate().toString().substring(0, 16),
-                        style: TextStyle(color: Colors.white)
-                    )
+                        _itemMessagePressed(position);
+                      },
+                      contentPadding: EdgeInsets.only(left: 10, right: 10),
+                      leading: img == null || img.isEmpty
+                          ? Container(width: 40, height: 40, child: icUser)
+                          : Container(
+                          width: 40,
+                          child: CachedNetworkImage(
+                              imageUrl: img,
+                              placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                              errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
+                              fit: BoxFit.cover,
+                              filterQuality: FilterQuality.none,
+                              imageBuilder: (context, imageProvider){
+                                return Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                            image: imageProvider,
+                                            fit: BoxFit.cover
+                                        )
+                                    )
+                                );
+                              }
+                          )
+                      ),
+                      trailing: Icon(Icons.keyboard_arrow_right, color: Colors.deepOrange, size: 20),
+                      title: Text(
+                          name ?? 'Group',
+                          style: TextStyle(color: Colors.white)
+                      ),
+                      subtitle: Text(
+                          _chats.elementAt(position).date.toDate().toString().substring(0, 16),
+                          style: TextStyle(color: Colors.white)
+                      )
+                  )
+              ),
+              secondaryActions: <Widget>[
+                IconSlideAction(
+                    color: Colors.red,
+                    icon: Icons.delete,
+                    closeOnTap: true,
+                    onTap: (){
+                      _deleteChat(position);
+                    }
                 )
-            ),
-            secondaryActions: <Widget>[
-              IconSlideAction(
-                  color: Colors.red,
-                  icon: Icons.delete,
-                  closeOnTap: true,
-                  onTap: (){
-                    _deleteChat(position);
-                  }
-              )
-            ]
+              ]
+          ),
         )
     );
   }
@@ -158,125 +176,201 @@ class _ChatPageState extends State<ChatPage> {
     return Visibility(
         visible: !_me.deletedChats.contains(_chats[position].chatId),
         key: UniqueKey(),
-        child: Slidable(
-            actionPane: SlidableDrawerActionPane(),
-            actionExtentRatio: 0.25,
-            closeOnScroll: true,
-            child: Container(
-                width: double.infinity,
-                color: Colors.black54,
-                child: ListTile(
-                    onTap: (){
-                      _chatUsers = [];
-                      for(var chatUser in _chats.elementAt(position).usersForRead) {
-                        for(User user in _friends){
-                          if(chatUser.uid == user.uid){
-                            _chatUsers.add(user);
-                            break;
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 1),
+          child: Slidable(
+              actionPane: SlidableDrawerActionPane(),
+              actionExtentRatio: 0.25,
+              closeOnScroll: true,
+              child: Container(
+                  width: double.infinity,
+                  color: Colors.black54,
+                  child: ListTile(
+                      onTap: (){
+                        _chatUsers = [];
+                        for(var chatUser in _chats.elementAt(position).usersForRead) {
+                          for(User user in _friends){
+                            if(chatUser.uid == user.uid){
+                              _chatUsers.add(user);
+                              break;
+                            }
                           }
                         }
-                      }
-                      _itemMessagePressed(position);
-                    },
-                    contentPadding: EdgeInsets.only(left: 10, right: 10),
-                    leading: img == null || img.isEmpty
-                        ? Container(width: 40, height: 40, child: icUser)
-                        : Container(
-                        width: 40,
-                        child: CachedNetworkImage(
-                            imageUrl: img,
-                            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                            errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
-                            fit: BoxFit.cover,
-                            filterQuality: FilterQuality.none,
-                            imageBuilder: (context, imageProvider){
-                              return Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                          image: imageProvider,
-                                          fit: BoxFit.cover
-                                      )
-                                  )
-                              );
-                            }
-                        )
-                    ),
-                    trailing: Icon(Icons.keyboard_arrow_right, color: Colors.deepOrange, size: 20),
-                    title: Text(
-                        name ?? 'Group',
-                        style: TextStyle(color: Colors.white)
-                    ),
-                    subtitle: Text(
-                        _chats.elementAt(position).date.toDate().toString().substring(0, 16),
-                        style: TextStyle(color: Colors.white)
-                    )
+                        _itemMessagePressed(position);
+                      },
+                      contentPadding: EdgeInsets.only(left: 10, right: 10),
+                      leading: img == null || img.isEmpty
+                          ? Container(width: 40, height: 40, child: icUser)
+                          : Container(
+                          width: 40,
+                          child: CachedNetworkImage(
+                              imageUrl: img,
+                              placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                              errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
+                              fit: BoxFit.cover,
+                              filterQuality: FilterQuality.none,
+                              imageBuilder: (context, imageProvider){
+                                return Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                            image: imageProvider,
+                                            fit: BoxFit.cover
+                                        )
+                                    )
+                                );
+                              }
+                          )
+                      ),
+                      trailing: Icon(Icons.keyboard_arrow_right, color: Colors.deepOrange, size: 20),
+                      title: Text(
+                          name ?? 'Group',
+                          style: TextStyle(color: Colors.white)
+                      ),
+                      subtitle: Text(
+                          _chats.elementAt(position).date.toDate().toString().substring(0, 16),
+                          style: TextStyle(color: Colors.white)
+                      )
+                  )
+              ),
+              secondaryActions: <Widget>[
+                IconSlideAction(
+                    color: Colors.red,
+                    icon: Icons.delete,
+                    closeOnTap: true,
+                    onTap: (){
+                      _deleteChat(position);
+                    }
                 )
+              ]
+          ),
+        )
+    );
+  }
+
+
+
+  Future<void>_itemMessagePressed(int position) async {
+    Navigator
+        .of(context)
+        .push(MaterialPageRoute(
+        builder: (_) => StreamProvider.value(
+            value: Database.instance.getChatById(_chats[position].chatId),
+            child: ChatMessages(me: _me, receivers: _chatUsers)
+        )
+    ));
+  }
+
+  Future<void>_deleteChat(int position) async {
+    _me.deletedChats.add(_chats[position].chatId);
+    await Database.instance.updateUserData(_me);
+  }
+
+  Future<void>_showCreateChatDialog() async {
+    if(_friends != null && _friends.length != 0){
+      _providerNavigation.selectedChatUserPositions = [];
+      _providerNavigation.groupIcon = null;
+      _controllerGroupName.clear();
+
+      await showDialog(
+          context: context,
+          builder: (BuildContext _context){
+            return AlertDialog(
+              scrollable: true,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+              contentPadding: EdgeInsets.all(10),
+              backgroundColor: colorApp,
+              content: FriendsView(friends: _friends, chatUsers: null),
+              actions: <Widget>[
+                IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.cancel, color: Colors.deepOrange, size: 30)
+                ),
+                IconButton(
+                  onPressed: (){
+                    if(_providerNavigation.selectedChatUserPositions.length > 0){
+                      Navigator.pop(context);
+
+                      if(_providerNavigation.selectedChatUserPositions.length > 1){
+                        _showGroupDialog();
+                      }
+
+                      _chatUsers = [];
+                      _providerNavigation.selectedChatUserPositions.forEach((position){
+                        _chatUsers.add(_friends[position]);
+                      });
+                      _chatUsers.add(_me);
+                    }
+                  },
+                  icon: Icon(
+                      Icons.add_circle, color: Colors.deepOrange, size: 30
+                  )
+                )
+              ]
+            );
+          }
+      );
+    }
+  }
+
+  Future<void>_showGroupDialog() async {
+    await showDialog(
+        context: context,
+        builder: (BuildContext _context){
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5)
             ),
-            secondaryActions: <Widget>[
-              IconSlideAction(
-                  color: Colors.red,
-                  icon: Icons.delete,
-                  closeOnTap: true,
-                  onTap: (){
-                    _deleteChat(position);
-                  }
+            backgroundColor: colorApp,
+            title: TextField(
+              controller: _controllerGroupName,
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Group name',
+                labelStyle: TextStyle(color: Colors.white)
+              ),
+              keyboardType: TextInputType.text,
+              maxLines: 1,
+              maxLength: 30,
+            ),
+            content: GroupIcon(),
+            actions: <Widget>[
+              Container(
+                height: 30,
+                width: 100,
+                child: RaisedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  color: Colors.deepOrange,
+                ),
+              ),
+              Container(
+                height: 30,
+                width: 100,
+                child: RaisedButton(
+                  onPressed: (){
+                    if(_controllerGroupName.text.trim().isNotEmpty){
+                      _createChat();
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text(
+                    'Create',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  color: Colors.deepOrange,
+                ),
               )
             ]
-        )
+          );
+        }
     );
   }
-
-  Widget _itemUserForDialog(int position){
-    return Container(
-        padding: EdgeInsets.fromLTRB(30, 0, 30, 10),
-        width: double.infinity,
-        child: ListTile(
-            onTap: (){
-              if(_providerNavigation.selectedChatUserPositions.contains(position)){
-                _providerNavigation.removeSelectedChatUserPositions(position);
-              } else _providerNavigation.addSelectedChatUserPositions(position);
-              Navigator.pop(context);
-              _showChatDialog();
-            },
-            contentPadding: EdgeInsets.zero,
-            leading: _friends[position].imgProfile.isEmpty
-                ? Container(width: 40, height: 40, child: icUser)
-                : Container(
-              width: 40,
-              child: CachedNetworkImage(
-                  imageUrl: _friends[position].imgProfile,
-                  placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                  errorWidget: (context, url, error) => Container(width: 40, height: 40, child: icUser),
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.none,
-                  imageBuilder: (context, imageProvider){
-                    return Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                                image: imageProvider,
-                                fit: BoxFit.cover
-                            )
-                        )
-                    );
-                  }
-              ),
-            ),
-            trailing: _providerNavigation.selectedChatUserPositions.contains(position) ? Icon(Icons.check, color: Colors.deepOrange, size: 20) : null,
-            title: Text(
-                _friends[position].fullName ?? '',
-                style: TextStyle(color: Colors.white)
-            )
-        )
-    );
-  }
-
-
 
   Future<void>_createChat() async {
     bool chatExists = false;
@@ -293,18 +387,20 @@ class _ChatPageState extends State<ChatPage> {
 
     if(!chatExists){
       // create new chat
-      Message chat = Message()
-        ..usersForWrite = []
-        ..senderId      = _me.uid
-        ..senderName    = _me.fullName
-        ..senderImg     = _me.imgProfile
-        ..date          = Timestamp.now();
+      Message chat = Message(
+          groupName:     _controllerGroupName.text.trim(),
+          usersForWrite: [],
+          senderId:      _me.uid,
+          senderName:    _me.fullName,
+          senderImg:     _me.imgProfile,
+          date:          Timestamp.now()
+      );
 
       _chatUsers.forEach((user){
         chat.usersForWrite.add(MyChatUser(uid: user.uid, name: user.fullName, img: user.imgProfile).toMap());
       });
 
-      String chatId = await Database.instance.createChat(chat);
+      String chatId = await Database.instance.createChat(chat, _providerNavigation.groupIcon);
       _me.chats.add(chatId);
       await Database.instance.updateUserData(_me);
 
@@ -324,68 +420,6 @@ class _ChatPageState extends State<ChatPage> {
         _me.deletedChats.remove(chatId);
         await Database.instance.updateUserData(_me);
       }
-    }
-  }
-
-  Future<void>_itemMessagePressed(int position) async {
-    Navigator
-        .of(context)
-        .push(MaterialPageRoute(
-        builder: (_) => StreamProvider.value(
-            value: Database.instance.getChatById(_chats[position].chatId),
-            child: ChatMessages(me: _me, receivers: _chatUsers)
-        )
-    ));
-  }
-
-  Future<void>_deleteChat(int position) async {
-    _me.deletedChats.add(_chats[position].chatId);
-    await Database.instance.updateUserData(_me);
-  }
-
-  Future<void>_showChatDialog() async {
-    if(_friends != null && _friends.length != 0){
-      //_providerNavigation.selectedChatUserPositions = [];
-
-      await showDialog(
-          context: context,
-          builder: (BuildContext _context){
-            return Scaffold(
-                body: Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          ListView.builder(
-                              itemCount: _friends.length,
-                              shrinkWrap: true,
-                              itemBuilder: (context, position) => _itemUserForDialog(position)
-                          ),
-                          Container(
-                            height: 30,
-                            width: 50,
-                            child: RaisedButton(
-                              onPressed: (){
-                                Navigator.pop(context);
-                                _chatUsers = [];
-                                _providerNavigation.selectedChatUserPositions.forEach((position){
-                                  _chatUsers.add(_friends[position]);
-                                });
-                                _chatUsers.add(_me);
-                                _createChat();
-                              },
-                              child: Text(
-                                'ok',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              color: Colors.deepOrange,
-                            ),
-                          )
-                        ]
-                    )
-                )
-            );
-          }
-      );
     }
   }
 }

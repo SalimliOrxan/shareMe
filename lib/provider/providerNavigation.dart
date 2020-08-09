@@ -15,6 +15,8 @@ class ProviderNavigation with ChangeNotifier {
   List<int>_selectedChatUserPositions = [];
   List<User>_friendsIsNotInChat = [];
   File _groupIcon;
+  bool _isEditable = false;
+  bool _isGroup = false;
 
 
 
@@ -90,6 +92,21 @@ class ProviderNavigation with ChangeNotifier {
   }
 
 
+  bool get isEditable => _isEditable;
+
+  set isEditable(bool value) {
+    _isEditable = value;
+    notifyListeners();
+  }
+
+
+  bool get isGroup => _isGroup;
+
+  set isGroup(bool value) {
+    _isGroup = value;
+    notifyListeners();
+  }
+
 
   void addSelectedChatUserPositions(int value) {
     _selectedChatUserPositions.add(value);
@@ -101,7 +118,9 @@ class ProviderNavigation with ChangeNotifier {
     notifyListeners();
   }
 
-  void refresh(){
-    notifyListeners();
+  void clearAll(){
+    _groupIcon = null;
+    _isEditable = false;
+    _isGroup = false;
   }
 }

@@ -78,8 +78,9 @@ class Database {
     return chat.chatId;
   }
 
-  Future<void>updateChat(Message chat) async {
+  Future<void>updateChat(Message chat, File groupIcon) async {
     DocumentReference docRef = _collectionChat.document(chat.chatId);
+    await Storage.instance.uploadGroupIcon(groupIcon, chat);
     await docRef.updateData(chat.toMap());
   }
 

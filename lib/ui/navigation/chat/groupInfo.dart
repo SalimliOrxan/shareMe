@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
+import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/chatUser.dart';
 import 'package:share_me/model/message.dart';
 import 'package:share_me/model/user.dart';
@@ -25,6 +26,20 @@ class _GroupInfoState extends State<GroupInfo> {
   ProviderNavigation _providerNavigation;
   List<User> _friends;
   Message _chat;
+  TextEditingController _controllerGroupName;
+
+  @override
+  void initState() {
+    _controllerGroupName = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _providerNavigation.clearAll();
+    _controllerGroupName.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +47,12 @@ class _GroupInfoState extends State<GroupInfo> {
     _friends = Provider.of(context);
     _chat = Provider.of(context);
 
+    _controllerGroupName?.text = _chat?.groupName;
+
     return Scaffold(
       backgroundColor: colorApp,
       appBar: _appBar(),
-      body: _body()
+      body: _chat == null ? Container() : _body()
     );
   }
 
@@ -54,18 +71,107 @@ class _GroupInfoState extends State<GroupInfo> {
   }
 
   Widget _body(){
-    return Column(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(bottom: 3),
-          child: Text(
-            'Chat friends',
-            style: TextStyle(color: Colors.white54),
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          _groupIconField(),
+          _groupNameField(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 3),
+            child: Text(
+              'Chat friends',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
-        ),
-        _addUserButton(),
-        _usersView()
-      ],
+          _addAdminButton(),
+          _addUserButton(),
+          _usersView()
+        ]
+      )
+    );
+  }
+
+  Widget _groupIconField(){
+    return Stack(
+        children: <Widget>[
+          Container(
+              height: 200,
+              width: double.infinity,
+              child: CachedNetworkImage(
+                  imageUrl: _chat.groupImg,
+                  placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) => Container(child: Icon(Icons.group, color: Colors.white, size: 50), color: Colors.white24),
+                  fit: BoxFit.cover
+              )
+          ),
+          Positioned(
+              right: 0,
+              child: GestureDetector(
+                onTap: () async {
+                  final file = await pickImage(false);
+                  await Database.instance.updateChat(_chat, file);
+                },
+                child: Container(
+                    height: 200,
+                    width: 90,
+                    color: Colors.black26,
+                    child: Center(
+                      child: Text(
+                          'upload',
+                          style: TextStyle(
+                              color: Colors.white
+                          )
+                      ),
+                    )
+                )
+              )
+          )
+        ]
+    );
+  }
+
+  Widget _groupNameField(){
+    return Padding(
+      padding: EdgeInsets.only(top: 20, bottom: 20),
+      child: Container(
+        padding: EdgeInsets.only(left: 20, right: 20),
+        height: 60,
+        color: _providerNavigation.isEditable ? Colors.black26 : Colors.black54,
+        child: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: TextField(
+                controller: _controllerGroupName,
+                enabled: _providerNavigation.isEditable,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                    contentPadding: EdgeInsets.only(right: 20),
+                    border: OutlineInputBorder(borderSide: BorderSide.none),
+                    counter: Text('')
+                ),
+                keyboardType: TextInputType.text,
+                maxLines: 1,
+                maxLength: 30
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: IconButton(
+                onPressed: () async {
+                  if(_providerNavigation.isEditable){
+                    _chat.groupName = _controllerGroupName.text.trim();
+                    await Database.instance.updateChat(_chat, null);
+                  }
+                  _providerNavigation.isEditable = !_providerNavigation.isEditable;
+                },
+                icon: Icon(_providerNavigation.isEditable ? Icons.check : Icons.edit, color: Colors.deepOrange, size: 20)
+              )
+            )
+          ]
+        )
+      )
     );
   }
 
@@ -73,6 +179,7 @@ class _GroupInfoState extends State<GroupInfo> {
     return ListView.builder(
         itemCount: _chat.usersForRead.length,
         shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
         itemBuilder: (context, position){
           return _itemUserView(position);
         }
@@ -86,7 +193,7 @@ class _GroupInfoState extends State<GroupInfo> {
       key: UniqueKey(),
       padding: const EdgeInsets.only(bottom: 1),
       child: Slidable(
-          enabled: user.uid != Auth.instance.uid,
+          enabled: user.uid != Auth.instance.uid && _chat.admins.contains(Auth.instance.uid),
           actionPane: SlidableDrawerActionPane(),
           actionExtentRatio: 0.25,
           closeOnScroll: true,
@@ -126,6 +233,21 @@ class _GroupInfoState extends State<GroupInfo> {
                   title: Text(
                       user.uid == Auth.instance.uid ? 'You' : user.name,
                       style: TextStyle(color: Colors.white)
+                  ),
+                  trailing: Visibility(
+                      visible: _chat.admins.contains(user.uid),
+                      child: Container(
+                          height: 20,
+                          width: 50,
+                          decoration: BoxDecoration(border: Border.all(color: Colors.greenAccent, width: 0.5)),
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                                'admin',
+                                style: TextStyle(color: Colors.greenAccent, fontSize: 11)
+                            ),
+                          )
+                      )
                   )
               )
           ),
@@ -141,25 +263,78 @@ class _GroupInfoState extends State<GroupInfo> {
     );
   }
 
+  Widget _addAdminButton(){
+    return Visibility(
+      visible: _chat.admins.contains(Auth.instance.uid),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 1),
+        child: Container(
+            width: double.infinity,
+            color: Colors.black54,
+            child: ListTile(
+                onTap: _showAddAdminDialog,
+                contentPadding: EdgeInsets.only(left: 10, right: 10),
+                leading: Icon(Icons.vpn_key, color: Colors.deepOrange, size: 29),
+                title: Text(
+                    'Add admin',
+                    style: TextStyle(color: Colors.white)
+                )
+            )
+        )
+      )
+    );
+  }
+
   Widget _addUserButton(){
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 1),
-      child: Container(
-          width: double.infinity,
-          color: Colors.black54,
-          child: ListTile(
-              onTap: _showAddFriendDialog,
-              contentPadding: EdgeInsets.only(left: 10, right: 10),
-              leading: Icon(Icons.person_add, color: Colors.deepOrange, size: 30),
-              title: Text(
-                  'Add friend',
-                  style: TextStyle(color: Colors.white)
-              )
-          )
+    return Visibility(
+      visible: _chat.admins.contains(Auth.instance.uid),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 1),
+        child: Container(
+            width: double.infinity,
+            color: Colors.black54,
+            child: ListTile(
+                onTap: _showAddFriendDialog,
+                contentPadding: EdgeInsets.only(left: 10, right: 10),
+                leading: Icon(Icons.person_add, color: Colors.deepOrange, size: 30),
+                title: Text(
+                    'Add friend',
+                    style: TextStyle(color: Colors.white)
+                )
+            )
+        ),
       ),
     );
   }
 
+
+  Future<void> _showAddAdminDialog() async {
+    _providerNavigation.selectedChatUserPositions?.clear();
+    _providerNavigation.friendsIsNotInChat?.clear();
+
+    await showDialog(
+        context: context,
+        builder: (BuildContext _context){
+          return AlertDialog(
+              scrollable: true,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+              contentPadding: EdgeInsets.all(10),
+              backgroundColor: colorApp,
+              content: Container(height: 500, child: FriendsView(friends: _friends, chat: _chat, forAdmin: true)),
+              actions: <Widget>[
+                IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.cancel, color: Colors.deepOrange, size: 30)
+                ),
+                IconButton(
+                    onPressed: _addUsersToAdmins,
+                    icon: Icon(Icons.add_circle, color: Colors.deepOrange, size: 30)
+                )
+              ]
+          );
+        }
+    );
+  }
 
   Future<void> _showAddFriendDialog() async {
     _providerNavigation.selectedChatUserPositions?.clear();
@@ -173,7 +348,7 @@ class _GroupInfoState extends State<GroupInfo> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
               contentPadding: EdgeInsets.all(10),
               backgroundColor: colorApp,
-              content: FriendsView(friends: _friends, chatUsers: _chat.usersForRead),
+              content: Container(height: 500, child: FriendsView(friends: _friends, chat: _chat, forAdmin: false)),
               actions: <Widget>[
                 IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -189,20 +364,37 @@ class _GroupInfoState extends State<GroupInfo> {
     );
   }
 
+  Future<void> _addUsersToAdmins() async {
+    if(_providerNavigation.selectedChatUserPositions.length > 0){
+      _clearFcm();
+      Navigator.pop(context);
+
+      _providerNavigation.selectedChatUserPositions.forEach((position){
+        User user = _providerNavigation.friendsIsNotInChat[position];
+        _chat.admins.add(user.uid);
+      });
+
+      await Database.instance.updateChat(_chat, null);
+    }
+  }
+
   Future<void> _addUsersToChat() async {
     if(_providerNavigation.selectedChatUserPositions.length > 0){
       Navigator.pop(context);
+      _clearFcm();
 
       List<User>newChatUsers = [];
+
       _providerNavigation.selectedChatUserPositions.forEach((position){
         User user = _providerNavigation.friendsIsNotInChat[position];
         newChatUsers.add(user);
         MyChatUser newUser = MyChatUser(uid: user.uid, name: user.fullName, img: user.imgProfile);
         _chat.usersForWrite.add(newUser.toMap());
+        _chat.addedUsers.add(user.fcmToken);
       });
 
 
-      await Database.instance.updateChat(_chat);
+      await Database.instance.updateChat(_chat, null);
 
       newChatUsers.forEach((user) async {
         user.chats.add(_chat.chatId);
@@ -212,6 +404,7 @@ class _GroupInfoState extends State<GroupInfo> {
   }
 
   Future<void> _removeUserFromChat(int position) async {
+    _clearFcm();
     User removedUser;
 
     for(User friend in _friends){
@@ -220,8 +413,14 @@ class _GroupInfoState extends State<GroupInfo> {
         break;
       }
     }
+    _chat.removedUsers.add(removedUser.fcmToken);
     _chat.usersForWrite.removeAt(position);
-    await Database.instance.updateChat(_chat);
+    await Database.instance.updateChat(_chat, null);
     await Database.instance.updateOtherUser(removedUser);
+  }
+
+  void _clearFcm(){
+    _chat.addedUsers.clear();
+    _chat.removedUsers.clear();
   }
 }

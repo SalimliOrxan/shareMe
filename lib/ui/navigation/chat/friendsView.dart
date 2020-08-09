@@ -3,35 +3,58 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
-import 'package:share_me/model/chatUser.dart';
+import 'package:share_me/model/message.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 
 class FriendsView extends StatelessWidget {
 
   final List<User>friends;
-  final List<MyChatUser>chatUsers;
-  FriendsView({@required this.friends, @required this.chatUsers});
+  final Message chat;
+  final bool forAdmin;
+  FriendsView({@required this.friends, @required this.chat, @required this.forAdmin});
 
   @override
   Widget build(BuildContext context) {
     ProviderNavigation providerNavigation = Provider.of(context);
     List<User>users = _detectFriendsWhoIsNotInChat(providerNavigation);
 
-    return Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          ListView.builder(
-            physics: NeverScrollableScrollPhysics(),
-              itemCount: users.length,
-              shrinkWrap: true,
-              itemBuilder: (context, position) => _itemUserForDialog(context, providerNavigation, users, position)
-          )
-        ]
+    return Scaffold(
+      body: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            _checkBoxGroup(providerNavigation),
+            ListView.builder(
+              physics: NeverScrollableScrollPhysics(),
+                itemCount: users.length,
+                shrinkWrap: true,
+                itemBuilder: (context, position) => _itemUserForDialog(context, providerNavigation, users, position)
+            )
+          ]
+      )
     );
   }
 
+
+  Widget _checkBoxGroup(ProviderNavigation providerNavigation){
+    return Visibility(
+      visible: chat == null,
+      child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Checkbox(
+                onChanged: (value) => providerNavigation.isGroup = value,
+                value: providerNavigation.isGroup
+            ),
+            Text(
+                'Group',
+                style: TextStyle(color: Colors.white)
+            )
+          ]
+      )
+    );
+  }
 
   Widget _itemUserForDialog(BuildContext context, ProviderNavigation providerNavigation, List<User>users, int position){
     return Container(
@@ -41,6 +64,10 @@ class FriendsView extends StatelessWidget {
               if(providerNavigation.selectedChatUserPositions.contains(position)){
                 providerNavigation.removeSelectedChatUserPositions(position);
               } else providerNavigation.addSelectedChatUserPositions(position);
+
+              if(providerNavigation.selectedChatUserPositions.length > 1 && !providerNavigation.isGroup){
+                providerNavigation.isGroup = true;
+              }
             },
             contentPadding: EdgeInsets.zero,
             leading: users[position].imgProfile.isEmpty
@@ -80,19 +107,34 @@ class FriendsView extends StatelessWidget {
   List<User> _detectFriendsWhoIsNotInChat(ProviderNavigation providerNavigation){
     List<User> users = [];
 
-    if(chatUsers != null){
-      friends.forEach((friend){
-        bool found = true;
+    if(chat != null){
+      if(forAdmin){
+        chat.usersForRead.forEach((chatUser){
+          bool found = true;
 
-        for(var user in chatUsers) {
-          if(friend.uid == user.uid){
-            found = false;
-            break;
+          for(var uid in chat.admins){
+            if(chatUser.uid == uid){
+              found = false;
+              break;
+            }
           }
-        }
-        if(found)users.add(friend);
-      });
-      providerNavigation.friendsIsNotInChat.addAll(users);
+          if(found) users.add(User(uid: chatUser.uid, fullName: chatUser.name, imgProfile: chatUser.img));
+        });
+        providerNavigation.friendsIsNotInChat.addAll(users);
+      } else {
+        friends.forEach((friend){
+          bool found = true;
+
+          for(var user in chat.usersForRead){
+            if(friend.uid == user.uid){
+              found = false;
+              break;
+            }
+          }
+          if(found) users.add(friend);
+        });
+        providerNavigation.friendsIsNotInChat.addAll(users);
+      }
     } else users.addAll(friends);
     return users;
   }

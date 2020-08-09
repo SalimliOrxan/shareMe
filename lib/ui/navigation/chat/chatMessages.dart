@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dash_chat/dash_chat.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -44,10 +45,12 @@ class _ChatMessagesState extends State<ChatMessages> {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.black26,
+      title: Text(
+        _chat?.groupName ?? '',
+        style: TextStyle(color: Colors.white)
+      ),
       actionsIconTheme: IconThemeData(color: Colors.white),
-      actions: <Widget>[
-        _more()
-      ]
+      actions: <Widget>[_more()]
     );
   }
 
@@ -88,7 +91,7 @@ class _ChatMessagesState extends State<ChatMessages> {
         icon: Icon(Icons.more_vert, color: Colors.white),
         itemBuilder: (BuildContext context){
           return <PopupMenuEntry<String>>[
-            PopupMenuItem(
+            !_chat.isGroup ? null : PopupMenuItem(
                 height: 40,
                 value: 'info',
                 child: Text(
@@ -101,14 +104,6 @@ class _ChatMessagesState extends State<ChatMessages> {
                 value: 'exit',
                 child: Text(
                     'Exit group',
-                    style: TextStyle(fontSize: 14, color: Colors.white)
-                )
-            ),
-            PopupMenuItem(
-                height: 40,
-                value: 'delete',
-                child: Text(
-                    'Delete group',
                     style: TextStyle(fontSize: 14, color: Colors.white)
                 )
             )
@@ -135,6 +130,7 @@ class _ChatMessagesState extends State<ChatMessages> {
   }
 
   Future<void>_sendMessage(ChatMessage message) async {
+    _clearFcm();
     _activeMessages.add(message);
 
     MessageDetail messageDetail = MessageDetail()
@@ -147,7 +143,7 @@ class _ChatMessagesState extends State<ChatMessages> {
     _chat.messagesForRead.add(messageDetail);
     _chat.messagesForWrite.add(messageDetail.toMap());
 
-    await Database.instance.updateChat(_chat);
+    await Database.instance.updateChat(_chat, null);
 
     print(widget.receivers.length.toString());
     widget.receivers.forEach((user) async {
@@ -165,9 +161,7 @@ class _ChatMessagesState extends State<ChatMessages> {
         break;
 
       case 'exit':
-        break;
-
-      case 'delete':
+        _showExitDialog();
         break;
     }
   }
@@ -177,13 +171,73 @@ class _ChatMessagesState extends State<ChatMessages> {
         context,
         MaterialPageRoute(
             builder: (_) => MultiProvider(
-              providers: [
-                StreamProvider.value(value: Database.instance.usersByUid(widget.me.friends)),
-                StreamProvider.value(value: Database.instance.getChatById(_chat.chatId))
-              ],
-              child: GroupInfo()
+                providers: [
+                  StreamProvider.value(value: Database.instance.usersByUid(widget.me.friends)),
+                  StreamProvider.value(value: Database.instance.getChatById(_chat.chatId))
+                ],
+                child: GroupInfo()
             )
         )
     );
+  }
+
+  Future<void>_showExitDialog() async {
+    await showDialog(
+        context: context,
+        builder: (BuildContext _context){
+          return AlertDialog(
+              scrollable: true,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+              contentPadding: EdgeInsets.all(10),
+              backgroundColor: colorApp,
+              title: Text(
+                'Are you sure?',
+                style: TextStyle(color: Colors.white)
+              ),
+              actions: <Widget>[
+                IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.cancel, color: Colors.deepOrange, size: 30)
+                ),
+                IconButton(
+                    onPressed: _exitGroup,
+                    icon: Icon(Icons.exit_to_app, color: Colors.deepOrange, size: 30)
+                )
+              ]
+          );
+        }
+    );
+  }
+
+  Future<void>_exitGroup() async {
+    Navigator.pop(context);
+    _clearFcm();
+    _chat.admins.remove(widget.me.uid);
+
+    if(_chat.admins.length == 0){
+      for(var user in _chat.usersForRead)
+        if(user.uid != widget.me.uid){
+          // add first user as admin
+          _chat.admins.add(user.uid);
+          break;
+        }
+    }
+
+    for(var user in _chat.usersForRead){
+      if(user.uid == widget.me.uid){
+        int index = _chat.usersForRead.indexOf(user);
+        _chat.usersForWrite.removeAt(index);
+        break;
+      }
+    }
+
+    await Database.instance.updateChat(_chat, null);
+    await Database.instance.updateUserData(widget.me..chats.remove(_chat.chatId));
+    await FirebaseMessaging().unsubscribeFromTopic(_chat.chatId);
+  }
+
+  void _clearFcm(){
+    _chat.addedUsers.clear();
+    _chat.removedUsers.clear();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -75,7 +76,7 @@ class _ChatPageState extends State<ChatPage> {
         shrinkWrap: true,
         itemCount: _chats.length,
         itemBuilder: (context, position){
-          return _chats[position].usersForRead.length == 2 ? _itemPersonalChat(position) : _itemGroupChat(position);
+          return _chats[position].isGroup ? _itemGroupChat(position) : _itemPersonalChat(position);
         }
     );
   }
@@ -200,7 +201,7 @@ class _ChatPageState extends State<ChatPage> {
                       },
                       contentPadding: EdgeInsets.only(left: 10, right: 10),
                       leading: img == null || img.isEmpty
-                          ? Container(width: 40, height: 40, child: icUser)
+                          ? CircleAvatar(maxRadius: 20, backgroundColor: Colors.white24, child: Icon(Icons.group))
                           : Container(
                           width: 40,
                           child: CachedNetworkImage(
@@ -245,7 +246,7 @@ class _ChatPageState extends State<ChatPage> {
                     }
                 )
               ]
-          ),
+          )
         )
     );
   }
@@ -282,7 +283,7 @@ class _ChatPageState extends State<ChatPage> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
               contentPadding: EdgeInsets.all(10),
               backgroundColor: colorApp,
-              content: FriendsView(friends: _friends, chatUsers: null),
+              content: Container(height: 500, child: FriendsView(friends: _friends, chat: null, forAdmin: false)),
               actions: <Widget>[
                 IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -293,7 +294,7 @@ class _ChatPageState extends State<ChatPage> {
                     if(_providerNavigation.selectedChatUserPositions.length > 0){
                       Navigator.pop(context);
 
-                      if(_providerNavigation.selectedChatUserPositions.length > 1){
+                      if(_providerNavigation.isGroup){
                         _showGroupDialog();
                       }
 
@@ -304,9 +305,7 @@ class _ChatPageState extends State<ChatPage> {
                       _chatUsers.add(_me);
                     }
                   },
-                  icon: Icon(
-                      Icons.add_circle, color: Colors.deepOrange, size: 30
-                  )
+                  icon: Icon(Icons.add_circle, color: Colors.deepOrange, size: 30)
                 )
               ]
             );
@@ -320,9 +319,7 @@ class _ChatPageState extends State<ChatPage> {
         context: context,
         builder: (BuildContext _context){
           return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5)
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
             backgroundColor: colorApp,
             title: TextField(
               controller: _controllerGroupName,
@@ -333,7 +330,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
               keyboardType: TextInputType.text,
               maxLines: 1,
-              maxLength: 30,
+              maxLength: 30
             ),
             content: GroupIcon(),
             actions: <Widget>[
@@ -374,11 +371,9 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void>_createChat() async {
     bool chatExists = false;
-    bool isGroup = true;
 
-    if(_chatUsers.length == 2){
+    if(!_providerNavigation.isGroup){
       // it is not group
-      isGroup = false;
       if(_me.chattedFriends.containsKey(_chatUsers[0].uid)){
         // chat already exists
         chatExists = true;
@@ -390,15 +385,25 @@ class _ChatPageState extends State<ChatPage> {
       Message chat = Message(
           groupName:     _controllerGroupName.text.trim(),
           usersForWrite: [],
+          admins:        [],
+          addedUsers:    [],
+          removedUsers:  [],
           senderId:      _me.uid,
           senderName:    _me.fullName,
           senderImg:     _me.imgProfile,
+          isGroup:       _providerNavigation.isGroup,
           date:          Timestamp.now()
       );
 
       _chatUsers.forEach((user){
-        chat.usersForWrite.add(MyChatUser(uid: user.uid, name: user.fullName, img: user.imgProfile).toMap());
+        chat.addedUsers.add(user.fcmToken);
+        MyChatUser chatUser = MyChatUser(uid: user.uid, name: user.fullName, img: user.imgProfile);
+        chat.usersForWrite.add(chatUser.toMap());
       });
+
+      if(_providerNavigation.isGroup){
+        chat.admins.add(_me.uid);
+      }
 
       String chatId = await Database.instance.createChat(chat, _providerNavigation.groupIcon);
       _me.chats.add(chatId);
@@ -412,7 +417,7 @@ class _ChatPageState extends State<ChatPage> {
       });
     }
 
-    else if(!isGroup){
+    else if(!_providerNavigation.isGroup){
       String chatId = _me.chattedFriends[_chatUsers[0].uid];
 
       if(_me.deletedChats.contains(chatId)){

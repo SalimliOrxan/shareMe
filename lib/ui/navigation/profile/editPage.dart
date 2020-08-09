@@ -150,7 +150,7 @@ class _EditPageState extends State<EditPage> {
                     placeholder: (context, url) => Center(child: CircularProgressIndicator()),
                     errorWidget: (context, url, error) => Container(decoration: BoxDecoration(color: Colors.blueGrey, borderRadius: BorderRadius.circular(20))),
                     fit: BoxFit.cover
-                ),
+                )
               )
                   : ClipRRect(
                   borderRadius: BorderRadius.circular(20),

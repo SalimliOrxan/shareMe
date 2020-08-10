@@ -5,14 +5,18 @@ class MessageDetail {
   String uid;
   String message;
   String fullName;
+  String userIcon;
   String img;
+  String video;
   Timestamp date;
 
   MessageDetail({
     this.uid,
     this.message,
     this.fullName,
+    this.userIcon,
     this.img,
+    this.video,
     this.date
   });
 
@@ -21,7 +25,9 @@ class MessageDetail {
       'uid':      uid,
       'message':  message,
       'fullName': fullName,
+      'userIcon': userIcon,
       'img':      img,
+      'video':    video,
       'date':     date
     };
   }
@@ -30,7 +36,9 @@ class MessageDetail {
     this.uid      = map['uid'] ?? '';
     this.message  = map['message'] ?? '';
     this.fullName = map['fullName'] ?? '';
-    this.img      = map['img'] ?? '';
+    this.userIcon = map['userIcon'];
+    this.img      = map['img'];
+    this.video    = map['video'];
     this.date     = map['date'] ?? Timestamp.now();
   }
 }

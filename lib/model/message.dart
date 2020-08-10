@@ -8,9 +8,7 @@ class Message {
   String chatId;
   String groupName;
   String groupImg;
-  String senderId;
-  String senderImg;
-  String senderName;
+  String senderFcmToken;
   bool isGroup = false;
   Timestamp date;
   List<MessageDetail> messagesForRead = [];
@@ -18,40 +16,33 @@ class Message {
   List<MyChatUser> usersForRead       = [];
   List<dynamic> usersForWrite         = [];
   List<dynamic> admins                = [];
-  List<dynamic> addedUsers            = [];
-  List<dynamic> removedUsers          = [];
+  List<dynamic> fcmTokens             = [];
 
   Message({
     this.chatId,
     this.groupName,
     this.groupImg,
-    this.senderId,
-    this.senderImg,
-    this.senderName,
+    this.senderFcmToken,
     this.isGroup,
     this.date,
     this.messagesForWrite,
     this.usersForWrite,
     this.admins,
-    this.addedUsers,
-    this.removedUsers
+    this.fcmTokens
   });
 
   Map<String, dynamic> toMap(){
     return {
-      'chatId':       chatId,
-      'groupName':    groupName,
-      'groupImg':     groupImg,
-      'senderId':     senderId,
-      'senderImg':    senderImg,
-      'senderName':   senderName,
-      'isGroup':      isGroup,
-      'date':         date,
-      'messages':     messagesForWrite,
-      'users':        usersForWrite,
-      'admins':       admins,
-      'addedUsers':   addedUsers,
-      'removedUsers': removedUsers
+      'chatId':         chatId,
+      'groupName':      groupName,
+      'groupImg':       groupImg,
+      'senderFcmToken': senderFcmToken,
+      'isGroup':        isGroup,
+      'date':           date,
+      'messages':       messagesForWrite,
+      'users':          usersForWrite,
+      'admins':         admins,
+      'fcmTokens':      fcmTokens
     };
   }
 
@@ -59,16 +50,13 @@ class Message {
     this.chatId           = map['chatId'] ?? '';
     this.groupName        = map['groupName'] ?? '';
     this.groupImg         = map['groupImg'] ?? '';
-    this.senderId         = map['senderId'] ?? '';
-    this.senderImg        = map['senderImg'] ?? '';
-    this.senderName       = map['senderName'] ?? '';
+    this.senderFcmToken   = map['senderFcmToken'] ?? '';
     this.isGroup          = map['isGroup'] ?? false;
     this.date             = map['date'] ?? Timestamp.now();
     this.messagesForWrite = map['messages'] ?? List<dynamic>();
     this.usersForWrite    = map['users'] ?? List<dynamic>();
     this.admins           = map['admins'] ?? List<dynamic>();
-    this.addedUsers       = map['addedUsers'] ?? List<dynamic>();
-    this.removedUsers     = map['removedUsers'] ?? List<dynamic>();
+    this.fcmTokens        = map['fcmTokens'] ?? List<dynamic>();
 
     messagesForRead = [];
     messagesForWrite.forEach((element){

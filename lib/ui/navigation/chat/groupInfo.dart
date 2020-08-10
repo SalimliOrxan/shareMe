@@ -366,7 +366,6 @@ class _GroupInfoState extends State<GroupInfo> {
 
   Future<void> _addUsersToAdmins() async {
     if(_providerNavigation.selectedChatUserPositions.length > 0){
-      _clearFcm();
       Navigator.pop(context);
 
       _providerNavigation.selectedChatUserPositions.forEach((position){
@@ -381,7 +380,6 @@ class _GroupInfoState extends State<GroupInfo> {
   Future<void> _addUsersToChat() async {
     if(_providerNavigation.selectedChatUserPositions.length > 0){
       Navigator.pop(context);
-      _clearFcm();
 
       List<User>newChatUsers = [];
 
@@ -390,7 +388,7 @@ class _GroupInfoState extends State<GroupInfo> {
         newChatUsers.add(user);
         MyChatUser newUser = MyChatUser(uid: user.uid, name: user.fullName, img: user.imgProfile);
         _chat.usersForWrite.add(newUser.toMap());
-        _chat.addedUsers.add(user.fcmToken);
+        _chat.fcmTokens.add(user.fcmToken);
       });
 
 
@@ -404,7 +402,6 @@ class _GroupInfoState extends State<GroupInfo> {
   }
 
   Future<void> _removeUserFromChat(int position) async {
-    _clearFcm();
     User removedUser;
 
     for(User friend in _friends){
@@ -413,14 +410,9 @@ class _GroupInfoState extends State<GroupInfo> {
         break;
       }
     }
-    _chat.removedUsers.add(removedUser.fcmToken);
+    _chat.fcmTokens.remove(removedUser.fcmToken);
     _chat.usersForWrite.removeAt(position);
     await Database.instance.updateChat(_chat, null);
     await Database.instance.updateOtherUser(removedUser);
-  }
-
-  void _clearFcm(){
-    _chat.addedUsers.clear();
-    _chat.removedUsers.clear();
   }
 }

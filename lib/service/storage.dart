@@ -100,4 +100,13 @@ class Storage {
       chat.groupImg   = await _downloadUrl.ref.getDownloadURL();
     }
   }
+
+  Future<String> uploadChatFile(File file, String chatId) async {
+    if(file != null){
+      _uploadTask     = _storage.child('images/imgChat/$chatId').child('${DateTime.now()}${path.extension(file.path)}').putFile(file);
+      _downloadUrl    = await _uploadTask.onComplete;
+      return await _downloadUrl.ref.getDownloadURL();
+    }
+    return null;
+  }
 }

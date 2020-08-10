@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -85,12 +84,14 @@ class _ChatPageState extends State<ChatPage> {
     String img;
     String name;
 
-    if(_chats.elementAt(position).senderId == _me.uid){
-      img  = _chats.elementAt(position).usersForRead[0].img;
-      name = _chats.elementAt(position).usersForRead[0].name;
+    Message chat = _chats.elementAt(position);
+
+    if(chat.usersForRead[0].uid == _me.uid){
+      img  = chat.usersForRead[0].img;
+      name = chat.usersForRead[0].name;
     } else {
-      img  = _chats.elementAt(position).senderImg;
-      name = _chats.elementAt(position).senderName;
+      img  = chat.usersForRead[1].img;
+      name = chat.usersForRead[1].name;
     }
 
     return Visibility(
@@ -383,20 +384,17 @@ class _ChatPageState extends State<ChatPage> {
     if(!chatExists){
       // create new chat
       Message chat = Message(
-          groupName:     _controllerGroupName.text.trim(),
-          usersForWrite: [],
-          admins:        [],
-          addedUsers:    [],
-          removedUsers:  [],
-          senderId:      _me.uid,
-          senderName:    _me.fullName,
-          senderImg:     _me.imgProfile,
-          isGroup:       _providerNavigation.isGroup,
-          date:          Timestamp.now()
+          groupName:      _controllerGroupName.text.trim(),
+          usersForWrite:  [],
+          admins:         [],
+          fcmTokens:      [],
+          senderFcmToken: _me.fcmToken,
+          isGroup:        _providerNavigation.isGroup,
+          date:           Timestamp.now()
       );
 
       _chatUsers.forEach((user){
-        chat.addedUsers.add(user.fcmToken);
+        chat.fcmTokens.add(user.fcmToken);
         MyChatUser chatUser = MyChatUser(uid: user.uid, name: user.fullName, img: user.imgProfile);
         chat.usersForWrite.add(chatUser.toMap());
       });

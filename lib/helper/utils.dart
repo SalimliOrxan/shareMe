@@ -9,11 +9,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
-import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/auth.dart';
-
-import 'customValues.dart';
 
 
 final _picker = ImagePicker();
@@ -240,7 +237,7 @@ Future<void> showImageDialog(BuildContext context, String url) async {
                 imageProvider: CachedNetworkImageProvider(url),
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.contained * 2,
-              ),
+              )
             )
           )
         );

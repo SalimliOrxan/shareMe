@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dash_chat/dash_chat.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,10 +13,11 @@ import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/message.dart';
 import 'package:share_me/model/messageDetail.dart';
 import 'package:share_me/model/user.dart';
+import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/database.dart';
-import 'package:share_me/service/storage.dart';
 import 'package:share_me/ui/navigation/chat/groupInfo.dart';
-import 'dart:math' as math;
+import 'package:share_me/ui/navigation/chat/insertFileView.dart';
+import 'package:share_me/ui/navigation/home/videoView.dart';
 
 class ChatMessages extends StatefulWidget {
 
@@ -30,15 +33,31 @@ enum FileFormat {GALLERY_IMAGE, CAMERA, GALLERY_VIDEO, VIDEO}
 
 class _ChatMessagesState extends State<ChatMessages> {
 
-  GlobalKey _key = GlobalKey();
+  ProviderNavigation _providerNavigation;
   Message _chat;
   List<ChatMessage>_activeMessages;
-  List<Color>_colors;
+  List<int>_colorPositions;
+  TextEditingController _controllerMessage;
+  GlobalKey _key = GlobalKey();
   File _file;
+  Offset _startPosition;
   int _userCount = 0;
 
   @override
+  void initState() {
+    _controllerMessage = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controllerMessage.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _providerNavigation = Provider.of(context);
     _chat = Provider.of<Message>(context);
     _initMessages();
 
@@ -78,6 +97,10 @@ class _ChatMessagesState extends State<ChatMessages> {
           Visibility(
               visible: _chat.messagesForRead.length == 0,
               child: _emptyBody()
+          ),
+          Visibility(
+              visible: _providerNavigation.isVoiceRecording,
+              child: _providerNavigation.voiceButtonPosition != null ? _voiceInputView() : Container()
           )
         ]
     );
@@ -91,35 +114,86 @@ class _ChatMessagesState extends State<ChatMessages> {
     ChatUser user = ChatUser(uid: widget.me.uid, name: widget.me.fullName, avatar: widget.me.imgProfile);
 
     return DashChat(
-      onSend: _sendMessage,
-      user: user,
-      showUserAvatar: true,
-      scrollToBottom: true,
-      onLoadEarlier: (){},
-      messages: _activeMessages,
-      messageTextBuilder: (text, [messages]){
-        return _itemMessageText(text, messages);
-      }
+        onSend: _sendMessage,
+        user: user,
+        showUserAvatar: true,
+        scrollToBottom: true,
+        onLoadEarlier: (){},
+        messages: _activeMessages,
+        messageBuilder: _itemMessage,
+        textController: _controllerMessage,
+        sendButtonBuilder: _sendButton,
+        onTextChange: (message){
+          if(message.length > 0 && !_providerNavigation.hasText){
+            _providerNavigation.hasText = true;
+          }
+          else if(message.length == 0 && _providerNavigation.hasText){
+            _providerNavigation.hasText = false;
+          }
+        }
     );
   }
 
-  Widget _itemMessageText(String text, ChatMessage messages){
-    int index = _chat.usersForRead.indexWhere((element) => element.uid == messages.user.uid);
+  Widget _itemMessage(ChatMessage message){
+    int index    = _chat.usersForRead.indexWhere((element) => element.uid == message.user.uid);
+    bool isMe    = message.user.uid == widget.me.uid;
+    bool hasFile = message.video != null || message.image != null;
 
-    return Column(
-        children: <Widget>[
-          Text(
-            messages.user.name,
-            style: TextStyle(color: _colors[index]),
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 10),
+      child: Align(
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: hasFile ? 1 : message.text.length > 100 ? 1 : 0.5,
+          child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: message.user.containerColor,
+                borderRadius: BorderRadius.circular(10)
+              ),
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Align(
+                      alignment: isMe ? Alignment.topRight : Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Text(
+                          message.user.name,
+                          style: TextStyle(color: colors[_colorPositions[index]]),
+                        ),
+                      ),
+                    ),
+                    message.image != null
+                        ? _photoView(message.image)
+                        : message.video != null
+                        ? _videoView(message.video)
+                        : Container(),
+                    Align(
+                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Text(
+                              message.text,
+                              style: TextStyle(color: Colors.white)
+                            )
+                        )
+                    ),
+                    Align(
+                        alignment: isMe ? Alignment.bottomRight : Alignment.bottomLeft,
+                        child: Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Text(
+                              message.createdAt.toString().substring(10, 19),
+                              style: TextStyle(color: Colors.white70, fontSize: 10)
+                            )
+                        )
+                    )
+                  ]
+              )
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10, bottom: 10),
-            child: Text(
-              text,
-              style: TextStyle(color: Colors.white70),
-            )
-          )
-        ]
+        ),
+      ),
     );
   }
 
@@ -151,6 +225,127 @@ class _ChatMessagesState extends State<ChatMessages> {
     );
   }
 
+  Widget _sendButton(send){
+    return GestureDetector(
+        onTap: (){
+          if(_providerNavigation.hasText) send();
+        },
+        onLongPress: (){
+
+        },
+        onLongPressStart: (a){
+          print('onLongPressStart');
+          if(!_providerNavigation.hasText){
+            _startPosition = a.globalPosition;
+            _providerNavigation.voiceButtonPosition = a.globalPosition;
+            _providerNavigation.isVoiceRecording = true;
+          }
+        },
+        onLongPressMoveUpdate: (a){
+          print('onLongPressMoveUpdate');
+          if(!_providerNavigation.hasText && _startPosition != null){
+            if(a.globalPosition.dx < _startPosition.dx - 10 && a.globalPosition.dx > _startPosition.dx / 3){
+              _providerNavigation.voiceButtonPosition = a.globalPosition;
+            }
+            print('${a.globalPosition}');
+          }
+        },
+        onLongPressEnd: (a){
+          print('onLongPressEnd');
+          _providerNavigation.voiceButtonPosition = _startPosition;
+        },
+        onLongPressUp: (){
+          print('onLongPressUp');
+          if(!_providerNavigation.hasText){
+            _providerNavigation.isVoiceRecording = false;
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: Visibility(
+            visible: !_providerNavigation.isVoiceRecording,
+            child: CircleAvatar(
+              maxRadius: _providerNavigation.isVoiceRecording ? 30 : 20,
+              backgroundColor: _providerNavigation.hasText ? Colors.white : colorApp,
+              child: Icon(
+                  _providerNavigation.hasText ? Icons.send : Icons.keyboard_voice,
+                  color: Colors.blue,
+                  size: 25
+              ),
+            ),
+          )
+        )
+    );
+  }
+
+  Widget _voiceInputView(){
+    return Positioned(
+      bottom: 0,
+      child: Stack(
+        children: <Widget>[
+          Container(
+            height: 50,
+            width: MediaQuery.of(context).size.width,
+            color: Colors.black,
+            child: Row(
+              children: <Widget>[
+                Icon(Icons.delete_forever, color: Colors.red, size: 30),
+                Spacer(),
+                ColorizeAnimatedTextKit(
+                  colors: [Colors.white24, Colors.white54, Colors.white70, Colors.white],
+                  text: ['Slide to delete'],
+                  repeatForever: true,
+                  speed: Duration(milliseconds: 200),
+                  textStyle: TextStyle(
+                      fontSize: 15.0,
+                      fontFamily: "Horizon"
+                  ),
+                ),
+                Spacer()
+              ]
+            )
+          ),
+          Positioned(
+            bottom: 0,
+            left: _providerNavigation.voiceButtonPosition.dx,
+            child: Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: CircleAvatar(
+                    maxRadius: 20,
+                    backgroundColor: colorApp,
+                    child: Icon(
+                        Icons.keyboard_voice,
+                        color: Colors.blue,
+                        size: 25
+                    )
+                )
+            ),
+          )
+        ]
+      ),
+    );
+  }
+
+  Widget _photoView(String fileUrl){
+    return GestureDetector(
+      onTap: () => showImageDialog(context, fileUrl),
+      child: CachedNetworkImage(
+          imageUrl: fileUrl,
+          placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+          errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.none
+      ),
+    );
+  }
+
+  Widget _videoView(String fileUrl){
+    return AspectRatio(
+        aspectRatio: 4 / 3,
+        child: VideoView(url: fileUrl, file: null)
+    );
+  }
+
 
 
   void _initMessages(){
@@ -164,26 +359,24 @@ class _ChatMessagesState extends State<ChatMessages> {
       });
 
       if(_chat.usersForRead.length != _userCount){
-        _colors = [];
+        _colorPositions = [];
         _userCount = _chat.usersForRead.length;
 
         _chat.usersForRead.forEach((element){
-          _colors.add(Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0));
+          _colorPositions.add(element.color);
         });
       }
     }
   }
 
   Future<void>_sendMessage(ChatMessage message) async {
-    String urlImage = await Storage.instance.uploadChatFile(_file, _chat.chatId);
-
-    MessageDetail messageDetail = MessageDetail()
-      ..date = Timestamp.now()
-      ..uid = widget.me.uid
-      ..message = message.text
-      ..fullName = widget.me.fullName
-      ..userIcon = widget.me.imgProfile
-      ..img = urlImage;
+    MessageDetail messageDetail = MessageDetail(
+        uid:      widget.me.uid,
+        date:     Timestamp.now(),
+        message:  message.text,
+        fullName: widget.me.fullName,
+        userIcon: widget.me.imgProfile
+    );
 
     _chat.messagesForRead.add(messageDetail);
     _chat.messagesForWrite.add(messageDetail.toMap());
@@ -286,48 +479,63 @@ class _ChatMessagesState extends State<ChatMessages> {
     Offset position = box.localToGlobal(Offset.zero);
 
     var selected = await showMenu(
-      context: context,
-      color: Colors.transparent,
-      position: RelativeRect.fromLTRB(position.dx, position.dy + 40, 0, 0),
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      items: [
-        PopupMenuItem(
-            value: 'image',
-            height: 65,
-            child: Center(
-              child: CircleAvatar(
-                maxRadius: 30,
-                backgroundColor: Colors.black,
-                child: Icon(Icons.photo, color: Colors.lightBlueAccent, size: 30)
+        context: context,
+        color: Colors.transparent,
+        position: RelativeRect.fromLTRB(position.dx, position.dy + 40, 0, 0),
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        items: [
+          PopupMenuItem(
+              value: 'image',
+              height: 65,
+              child: Center(
+                  child: CircleAvatar(
+                      maxRadius: 30,
+                      backgroundColor: Colors.black,
+                      child: Icon(Icons.photo, color: Colors.lightBlueAccent, size: 30)
+                  )
               )
-            )
-        ),
-        PopupMenuItem(
-            value: 'video',
-            height: 65,
-            child: Center(
-              child: CircleAvatar(
-                  maxRadius: 30,
-                  backgroundColor: Colors.black,
-                  child: Icon(Icons.video_library, color: Colors.lightBlueAccent, size: 30)
+          ),
+          PopupMenuItem(
+              value: 'video',
+              height: 65,
+              child: Center(
+                  child: CircleAvatar(
+                      maxRadius: 30,
+                      backgroundColor: Colors.black,
+                      child: Icon(Icons.video_library, color: Colors.lightBlueAccent, size: 30)
+                  )
               )
-            )
-        )
-      ]
+          )
+        ]
     );
     _onPressedInsert(selected);
   }
 
   Future<void>_onPressedInsert(String value) async {
+    _file = null;
+
     switch(value){
       case 'image':
         _file = await pickImage(false);
+        _openFileView(true);
         break;
 
       case 'video':
         _file = await pickVideo(false);
+        _openFileView(false);
         break;
+    }
+  }
+
+  void _openFileView(bool isImage){
+    if(_file != null){
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => InsertFileView(chat: _chat, me: widget.me, file: _file, isImage: isImage)
+          )
+      );
     }
   }
 }

@@ -7,3 +7,22 @@ Widget icUser    = SvgPicture.asset('images/user.svg', fit: BoxFit.cover, width:
 
 
 const colorApp = Color(0xFF253243);
+
+List<Color>colors = [
+  Colors.lightBlueAccent,
+  Colors.deepOrange,
+  Colors.green,
+  Colors.blueGrey,
+  Colors.red,
+  Colors.blue,
+  Colors.pink,
+  Colors.orangeAccent,
+  Colors.teal,
+  Colors.yellow,
+  Colors.brown,
+  Colors.cyan,
+  Colors.cyanAccent,
+  Colors.pinkAccent,
+  Colors.lightGreenAccent,
+  Colors.deepOrangeAccent
+];

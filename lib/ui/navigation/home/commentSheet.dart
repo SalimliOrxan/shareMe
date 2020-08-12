@@ -123,7 +123,7 @@ class CommentSheetState extends State<CommentSheet> {
                               }
                             }
                           }
-                      ),
+                      )
                     ),
                     Visibility(
                         visible: _providerNavigationHome.hasText,

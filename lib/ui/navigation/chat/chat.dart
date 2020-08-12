@@ -393,10 +393,19 @@ class _ChatPageState extends State<ChatPage> {
           date:           Timestamp.now()
       );
 
+      int colorPosition = 0;
+
       _chatUsers.forEach((user){
+        if(colorPosition == 16) colorPosition = 0;
         chat.fcmTokens.add(user.fcmToken);
-        MyChatUser chatUser = MyChatUser(uid: user.uid, name: user.fullName, img: user.imgProfile);
+        MyChatUser chatUser = MyChatUser(
+            uid:   user.uid,
+            name:  user.fullName,
+            img:   user.imgProfile,
+            color: colorPosition
+        );
         chat.usersForWrite.add(chatUser.toMap());
+        colorPosition++;
       });
 
       if(_providerNavigation.isGroup){

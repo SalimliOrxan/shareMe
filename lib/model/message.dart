@@ -4,7 +4,6 @@ import 'package:share_me/model/messageDetail.dart';
 import 'chatUser.dart';
 
 class Message {
-
   String chatId;
   String groupName;
   String groupImg;

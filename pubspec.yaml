@@ -55,6 +55,7 @@ dependencies:
   share: ^0.6.4+3
   receive_sharing_intent: ^1.4.0+2
   dash_chat: ^1.1.14
+  animated_text_kit: ^2.2.0
 
 
 

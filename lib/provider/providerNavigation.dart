@@ -18,6 +18,10 @@ class ProviderNavigation with ChangeNotifier {
   bool _isEditable = false;
   bool _isGroup = false;
 
+  bool _hasText = false;
+  bool _isVoiceRecording = false;
+  Offset _voiceButtonPosition;
+
 
 
   int get positionPage => _positionPage;
@@ -106,6 +110,33 @@ class ProviderNavigation with ChangeNotifier {
     _isGroup = value;
     notifyListeners();
   }
+
+
+  bool get hasText => _hasText;
+
+  set hasText(bool value) {
+    _hasText = value;
+    notifyListeners();
+  }
+
+
+  bool get isVoiceRecording => _isVoiceRecording;
+
+  set isVoiceRecording(bool value) {
+    _isVoiceRecording = value;
+    notifyListeners();
+  }
+
+
+  Offset get voiceButtonPosition => _voiceButtonPosition;
+
+  set voiceButtonPosition(Offset value) {
+    _voiceButtonPosition = value;
+    notifyListeners();
+  }
+
+
+
 
 
   void addSelectedChatUserPositions(int value) {

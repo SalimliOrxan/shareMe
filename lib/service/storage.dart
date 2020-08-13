@@ -101,13 +101,32 @@ class Storage {
     }
   }
 
-  Future<String> uploadChatFile(File file, String chatId, bool isImage) async {
+  Future<String> uploadChatFile(File file, String chatId, Fab fileType) async {
     if(file != null){
-      String folder   = isImage ? 'images/imgChat' : 'video/videoChat';
-      print('${path.extension(file.path)}');
-      //_uploadTask     = _storage.child('$folder/$chatId').child('${DateTime.now()}${path.extension(file.path)}').putFile(file);
-      //_downloadUrl    = await _uploadTask.onComplete;
-      //return await _downloadUrl.ref.getDownloadURL();
+      String folder;
+
+      switch(fileType){
+        case Fab.audio:
+          folder = 'audio/audioChat';
+          break;
+        case Fab.video:
+          folder = 'video/videoChat';
+          break;
+        case Fab.photo:
+          folder = 'images/imgChat';
+          break;
+        case Fab.location:
+          break;
+        case Fab.link:
+          break;
+        case Fab.snippet:
+          break;
+      }
+
+
+      _uploadTask     = _storage.child('$folder/$chatId').child('${DateTime.now()}${path.extension(file.path)}').putFile(file);
+      _downloadUrl    = await _uploadTask.onComplete;
+      return await _downloadUrl.ref.getDownloadURL();
     }
     return null;
   }

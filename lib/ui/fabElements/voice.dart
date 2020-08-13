@@ -158,8 +158,8 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
         style: TextStyle(
             fontSize: 14,
             color: Colors.white
-        ),
-      ),
+        )
+      )
     );
   }
 
@@ -339,7 +339,7 @@ class _VoiceRecorderState extends State<VoiceRecorder> with TickerProviderStateM
         _providerFab.current = current;
         _statusRecord = current.status;
         print('----- $_statusRecord');
-      } else Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("You must accept permissions")));
+      } else Scaffold.of(context).showSnackBar(SnackBar(content: new Text("You must accept permissions")));
     } catch (e) {
       print(e);
     }

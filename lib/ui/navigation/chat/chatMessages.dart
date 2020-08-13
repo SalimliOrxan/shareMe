@@ -15,8 +15,10 @@ import 'package:share_me/model/messageDetail.dart';
 import 'package:share_me/model/user.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/database.dart';
+import 'package:share_me/service/storage.dart';
 import 'package:share_me/ui/navigation/chat/groupInfo.dart';
 import 'package:share_me/ui/navigation/chat/insertFileView.dart';
+import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 import 'package:share_me/ui/navigation/home/videoView.dart';
 
 class ChatMessages extends StatefulWidget {
@@ -31,12 +33,13 @@ class ChatMessages extends StatefulWidget {
 
 enum FileFormat {GALLERY_IMAGE, CAMERA, GALLERY_VIDEO, VIDEO}
 
-class _ChatMessagesState extends State<ChatMessages> {
+class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMixin {
 
   ProviderNavigation _providerNavigation;
   Message _chat;
   List<ChatMessage>_activeMessages;
   List<int>_colorPositions;
+  AnimationController _animationController;
   TextEditingController _controllerMessage;
   GlobalKey _key = GlobalKey();
   File _file;
@@ -46,11 +49,26 @@ class _ChatMessagesState extends State<ChatMessages> {
   @override
   void initState() {
     _controllerMessage = TextEditingController();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 800)
+    );
+    _animationController.addListener((){
+      if(_animationController.status == AnimationStatus.completed){
+        _providerNavigation.isVoiceRecording = false;
+        _animationController.reset();
+
+        if(File(_providerNavigation.recording.path).existsSync()){
+          File(_providerNavigation.recording.path).deleteSync();
+        }
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _animationController.dispose();
     _controllerMessage.dispose();
     super.dispose();
   }
@@ -114,8 +132,8 @@ class _ChatMessagesState extends State<ChatMessages> {
     ChatUser user = ChatUser(uid: widget.me.uid, name: widget.me.fullName, avatar: widget.me.imgProfile);
 
     return DashChat(
-        onSend: _sendMessage,
         user: user,
+        onSend: (_) => _sendMessage(),
         showUserAvatar: true,
         scrollToBottom: true,
         onLoadEarlier: (){},
@@ -124,10 +142,10 @@ class _ChatMessagesState extends State<ChatMessages> {
         textController: _controllerMessage,
         sendButtonBuilder: _sendButton,
         onTextChange: (message){
-          if(message.length > 0 && !_providerNavigation.hasText){
+          if(message.trim().length > 0 && !_providerNavigation.hasText){
             _providerNavigation.hasText = true;
           }
-          else if(message.length == 0 && _providerNavigation.hasText){
+          else if(message.trim().length == 0 && _providerNavigation.hasText){
             _providerNavigation.hasText = false;
           }
         }
@@ -228,36 +246,39 @@ class _ChatMessagesState extends State<ChatMessages> {
   Widget _sendButton(send){
     return GestureDetector(
         onTap: (){
-          if(_providerNavigation.hasText) send();
+          if(_providerNavigation.hasText) _sendMessage();
         },
-        onLongPress: (){
-
-        },
-        onLongPressStart: (a){
-          print('onLongPressStart');
+        onLongPressStart: (view){
           if(!_providerNavigation.hasText){
-            _startPosition = a.globalPosition;
-            _providerNavigation.voiceButtonPosition = a.globalPosition;
+            _startPosition = view.globalPosition;
+            Offset position = Offset(view.globalPosition.dx - 20, view.globalPosition.dy);
+            _providerNavigation.voiceButtonPosition = position;
             _providerNavigation.isVoiceRecording = true;
+            startRecordingVoice(context);
           }
         },
-        onLongPressMoveUpdate: (a){
-          print('onLongPressMoveUpdate');
+        onLongPressMoveUpdate: (view){
           if(!_providerNavigation.hasText && _startPosition != null){
-            if(a.globalPosition.dx < _startPosition.dx - 10 && a.globalPosition.dx > _startPosition.dx / 3){
-              _providerNavigation.voiceButtonPosition = a.globalPosition;
+            if(view.globalPosition.dx < _startPosition.dx - 20){
+              if(view.globalPosition.dx > _startPosition.dx / 2) _providerNavigation.voiceButtonPosition = view.globalPosition;
+              else _animationController.animateTo(1.0);
             }
-            print('${a.globalPosition}');
           }
         },
-        onLongPressEnd: (a){
-          print('onLongPressEnd');
-          _providerNavigation.voiceButtonPosition = _startPosition;
+        onLongPressEnd: (view){
+          if(!_providerNavigation.hasText){
+            _providerNavigation.voiceButtonPosition = _startPosition;
+            stopRecordingVoice(context).then((file){
+              if(file != null && file.existsSync()){
+                _file = file;
+                _sendMessage();
+              }
+            });
+          }
         },
         onLongPressUp: (){
-          print('onLongPressUp');
           if(!_providerNavigation.hasText){
-            _providerNavigation.isVoiceRecording = false;
+            if(!_animationController.isAnimating && _providerNavigation.isVoiceRecording) _providerNavigation.isVoiceRecording = false;
           }
         },
         child: Padding(
@@ -289,7 +310,14 @@ class _ChatMessagesState extends State<ChatMessages> {
             color: Colors.black,
             child: Row(
               children: <Widget>[
-                Icon(Icons.delete_forever, color: Colors.red, size: 30),
+                RotationTransition(
+                  turns: _animationController,
+                  child: Icon(Icons.delete_forever, color: Colors.red, size: 30)
+                ),
+                Text(
+                    _providerNavigation.recording != null ? _providerNavigation.recording.duration.toString().substring(2, 7) : '00:00',
+                    style: TextStyle(color: Colors.white)
+                ),
                 Spacer(),
                 ColorizeAnimatedTextKit(
                   colors: [Colors.white24, Colors.white54, Colors.white70, Colors.white],
@@ -299,7 +327,7 @@ class _ChatMessagesState extends State<ChatMessages> {
                   textStyle: TextStyle(
                       fontSize: 15.0,
                       fontFamily: "Horizon"
-                  ),
+                  )
                 ),
                 Spacer()
               ]
@@ -319,10 +347,10 @@ class _ChatMessagesState extends State<ChatMessages> {
                         size: 25
                     )
                 )
-            ),
+            )
           )
         ]
-      ),
+      )
     );
   }
 
@@ -369,15 +397,18 @@ class _ChatMessagesState extends State<ChatMessages> {
     }
   }
 
-  Future<void>_sendMessage(ChatMessage message) async {
+  Future<void>_sendMessage() async {
     MessageDetail messageDetail = MessageDetail(
         uid:      widget.me.uid,
         date:     Timestamp.now(),
-        message:  message.text,
+        message:  _controllerMessage.text.trim(),
         fullName: widget.me.fullName,
-        userIcon: widget.me.imgProfile
+        userIcon: widget.me.imgProfile,
+        audio:    await Storage.instance.uploadChatFile(_file, _chat.chatId, Fab.audio)
     );
 
+    _controllerMessage.clear();
+    if(_providerNavigation.hasText) _providerNavigation.hasText = false;
     _chat.messagesForRead.add(messageDetail);
     _chat.messagesForWrite.add(messageDetail.toMap());
     _chat.senderFcmToken = widget.me.fcmToken;
@@ -385,11 +416,11 @@ class _ChatMessagesState extends State<ChatMessages> {
     await Database.instance.updateChat(_chat, null);
 
     widget.receivers.forEach((user) async {
-      print(_chat.chatId);
       if(user.deletedChats.contains(_chat.chatId)){
         await Database.instance.updateOtherUser(user..deletedChats.remove(_chat.chatId));
       }
     });
+    _file = null;
   }
 
   void _onPressedPopUp(String value){
@@ -518,22 +549,22 @@ class _ChatMessagesState extends State<ChatMessages> {
     switch(value){
       case 'image':
         _file = await pickImage(false);
-        _openFileView(true);
+        _openFileView(Fab.photo);
         break;
 
       case 'video':
         _file = await pickVideo(false);
-        _openFileView(false);
+        _openFileView(Fab.video);
         break;
     }
   }
 
-  void _openFileView(bool isImage){
+  void _openFileView(Fab fileType){
     if(_file != null){
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (_) => InsertFileView(chat: _chat, me: widget.me, file: _file, isImage: isImage)
+              builder: (_) => InsertFileView(chat: _chat, me: widget.me, file: _file, fileType: fileType)
           )
       );
     }

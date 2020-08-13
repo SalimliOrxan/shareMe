@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 import 'package:share_me/model/user.dart';
 
 class ProviderNavigation with ChangeNotifier {
@@ -21,6 +22,7 @@ class ProviderNavigation with ChangeNotifier {
   bool _hasText = false;
   bool _isVoiceRecording = false;
   Offset _voiceButtonPosition;
+  Recording _recording;
 
 
 
@@ -132,6 +134,14 @@ class ProviderNavigation with ChangeNotifier {
 
   set voiceButtonPosition(Offset value) {
     _voiceButtonPosition = value;
+    notifyListeners();
+  }
+
+
+  Recording get recording => _recording;
+
+  set recording(Recording value) {
+    _recording = value;
     notifyListeners();
   }
 

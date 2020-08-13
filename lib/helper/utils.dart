@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,9 +12,13 @@ import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/auth.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:file/local.dart';
 
 
 final _picker = ImagePicker();
+RecordingStatus _recordingStatus;
+FlutterAudioRecorder _recorder;
 
 
 Future<void> showDialogFab(BuildContext context, Widget view) async {
@@ -253,4 +258,83 @@ Future<File> pickImage(bool isCamera) async {
 Future<File> pickVideo(bool isCamera) async {
   final pickedFile = await _picker.getVideo(source: isCamera ? ImageSource.camera : ImageSource.gallery, maxDuration: Duration(minutes: 10));
   return pickedFile != null ? File(pickedFile.path) : null;
+}
+
+Future<void> startRecordingVoice(BuildContext context) async {
+  if(_recordingStatus != RecordingStatus.Recording){
+    await _init(context);
+    await _start(context);
+  }
+}
+
+Future<File>stopRecordingVoice(BuildContext context) async {
+  ProviderNavigation _providerNavigation = Provider.of(context, listen: false);
+  if(_recordingStatus == RecordingStatus.Recording){
+    var result = await _recorder.stop();
+    print("Stop recording: ${result.path}");
+    print("Stop recording: ${result.duration}");
+    File file = LocalFileSystem().file(result.path);
+    print("File length: ${await file.length()}");
+    _providerNavigation.recording = result;
+    _recordingStatus = _providerNavigation.recording.status;
+    return File(_providerNavigation.recording.path);
+  }
+  return null;
+}
+
+Future<void>_init(BuildContext context) async {
+  try {
+    ProviderNavigation _providerNavigation = Provider.of(context, listen: false);
+    if(await FlutterAudioRecorder.hasPermissions){
+      String customPath = '/share_me_';
+      Directory appDocDirectory;
+
+      if(Platform.isIOS){
+        appDocDirectory = await getApplicationDocumentsDirectory();
+      } else {
+        appDocDirectory = await getExternalStorageDirectory();
+      }
+
+      // can add extension like ".mp4" ".wav" ".m4a" ".aac"
+      customPath = appDocDirectory.path + customPath + DateTime.now().millisecondsSinceEpoch.toString();
+
+      // .wav <---> AudioFormat.WAV
+      // .mp4 .m4a .aac <---> AudioFormat.AAC
+      // AudioFormat is optional, if given value, will overwrite path extension when there is conflicts.
+      _recorder = FlutterAudioRecorder(customPath, audioFormat: AudioFormat.WAV);
+
+      await _recorder.initialized;
+      // after initialization
+      var current = await _recorder.current(channel: 0);
+      print(current);
+      // should be "Initialized", if all working fine
+      _providerNavigation.recording = current;
+      _recordingStatus = current.status;
+    } else Scaffold.of(context).showSnackBar(SnackBar(content: Text("You must accept permissions")));
+  } catch (e) {
+    print(e);
+  }
+}
+
+Future<void>_start(BuildContext context) async {
+  try {
+    ProviderNavigation _providerNavigation = Provider.of(context, listen: false);
+    await _recorder.start();
+    var current = await _recorder.current(channel: 0);
+    _providerNavigation.recording = current;
+
+    const tick = const Duration(milliseconds: 50);
+    Timer.periodic(tick, (Timer t) async {
+      if (_recordingStatus == RecordingStatus.Stopped) {
+        t.cancel();
+      }
+
+      var current = await _recorder.current(channel: 0);
+      // print(current.status);
+      _providerNavigation.recording = current;
+      _recordingStatus = _providerNavigation.recording.status;
+    });
+  } catch (e) {
+    print(e);
+  }
 }

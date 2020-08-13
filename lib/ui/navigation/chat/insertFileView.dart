@@ -5,6 +5,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:share_me/model/messageDetail.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/service/storage.dart';
+import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 import 'package:share_me/ui/navigation/home/videoView.dart';
 
 class InsertFileView extends StatefulWidget {
@@ -12,8 +13,8 @@ class InsertFileView extends StatefulWidget {
   final chat;
   final me;
   final file;
-  final isImage;
-  InsertFileView({@required this.chat, @required this.me, @required this.file, @required this.isImage});
+  final fileType;
+  InsertFileView({@required this.chat, @required this.me, @required this.file, @required this.fileType});
 
   @override
   _InsertFileState createState() => _InsertFileState();
@@ -23,6 +24,7 @@ class InsertFileView extends StatefulWidget {
 class _InsertFileState extends State<InsertFileView> {
 
   TextEditingController _controllerMessage;
+  Fab fileType;
 
   @override
   void initState() {
@@ -57,7 +59,7 @@ class _InsertFileState extends State<InsertFileView> {
   Widget _body(){
     return Stack(
         children: <Widget>[
-          widget.isImage ? _photoView() : _videoView(),
+          widget.fileType == Fab.photo ? _photoView() : _videoView(),
           _messageField()
         ]
     );
@@ -111,7 +113,7 @@ class _InsertFileState extends State<InsertFileView> {
 
   Future<void>_sendMessage() async {
     Navigator.pop(context);
-    String urlFile = await Storage.instance.uploadChatFile(widget.file, widget.chat.chatId, widget.isImage);
+    String urlFile = await Storage.instance.uploadChatFile(widget.file, widget.chat.chatId, fileType);
 
     MessageDetail messageDetail = MessageDetail(
         uid:      widget.me.uid,
@@ -119,8 +121,8 @@ class _InsertFileState extends State<InsertFileView> {
         message:  _controllerMessage.text.trim(),
         fullName: widget.me.fullName,
         userIcon: widget.me.imgProfile,
-        img:      widget.isImage ? urlFile : null,
-        video:    widget.isImage ? null : urlFile
+        img:      fileType == Fab.photo ? urlFile : null,
+        video:    fileType == Fab.video ? urlFile : null
     );
 
     widget.chat.messagesForRead.add(messageDetail);

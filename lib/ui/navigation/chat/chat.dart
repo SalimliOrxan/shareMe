@@ -8,7 +8,7 @@ import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/model/chatUser.dart';
 import 'package:share_me/model/message.dart';
 import 'package:share_me/model/user.dart';
-import 'package:share_me/provider/providerNavigation.dart';
+import 'package:share_me/provider/providerChat.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/ui/navigation/chat/chatMessages.dart';
 import 'package:share_me/ui/navigation/chat/friendsView.dart';
@@ -22,7 +22,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
 
-  ProviderNavigation _providerNavigation;
+  ProviderChat _providerChat;
   List<User> _friends, _chatUsers = [];
   List<Message> _chats;
   User _me;
@@ -42,10 +42,10 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    _providerNavigation = Provider.of<ProviderNavigation>(context);
-    _friends = Provider.of<List<User>>(context);
-    _chats   = Provider.of<List<Message>>(context);
-    _me      = Provider.of<User>(context);
+    _providerChat = Provider.of(context);
+    _friends      = Provider.of<List<User>>(context);
+    _chats        = Provider.of<List<Message>>(context);
+    _me           = Provider.of<User>(context);
 
     return Scaffold(
         backgroundColor: colorApp,
@@ -272,8 +272,8 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void>_showCreateChatDialog() async {
     if(_friends != null && _friends.length != 0){
-      _providerNavigation.selectedChatUserPositions = [];
-      _providerNavigation.groupIcon = null;
+      _providerChat.selectedChatUserPositions = [];
+      _providerChat.groupIcon = null;
       _controllerGroupName.clear();
 
       await showDialog(
@@ -292,15 +292,15 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 IconButton(
                   onPressed: (){
-                    if(_providerNavigation.selectedChatUserPositions.length > 0){
+                    if(_providerChat.selectedChatUserPositions.length > 0){
                       Navigator.pop(context);
 
-                      if(_providerNavigation.isGroup){
+                      if(_providerChat.isGroup){
                         _showGroupDialog();
                       }
 
                       _chatUsers = [];
-                      _providerNavigation.selectedChatUserPositions.forEach((position){
+                      _providerChat.selectedChatUserPositions.forEach((position){
                         _chatUsers.add(_friends[position]);
                       });
                       _chatUsers.add(_me);
@@ -373,7 +373,7 @@ class _ChatPageState extends State<ChatPage> {
   Future<void>_createChat() async {
     bool chatExists = false;
 
-    if(!_providerNavigation.isGroup){
+    if(!_providerChat.isGroup){
       // it is not group
       if(_me.chattedFriends.containsKey(_chatUsers[0].uid)){
         // chat already exists
@@ -389,7 +389,7 @@ class _ChatPageState extends State<ChatPage> {
           admins:         [],
           fcmTokens:      [],
           senderFcmToken: _me.fcmToken,
-          isGroup:        _providerNavigation.isGroup,
+          isGroup:        _providerChat.isGroup,
           date:           Timestamp.now()
       );
 
@@ -408,11 +408,11 @@ class _ChatPageState extends State<ChatPage> {
         colorPosition++;
       });
 
-      if(_providerNavigation.isGroup){
+      if(_providerChat.isGroup){
         chat.admins.add(_me.uid);
       }
 
-      String chatId = await Database.instance.createChat(chat, _providerNavigation.groupIcon);
+      String chatId = await Database.instance.createChat(chat, _providerChat.groupIcon);
       _me.chats.add(chatId);
       await Database.instance.updateUserData(_me);
 
@@ -424,7 +424,7 @@ class _ChatPageState extends State<ChatPage> {
       });
     }
 
-    else if(!_providerNavigation.isGroup){
+    else if(!_providerChat.isGroup){
       String chatId = _me.chattedFriends[_chatUsers[0].uid];
 
       if(_me.deletedChats.contains(chatId)){

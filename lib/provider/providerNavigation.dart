@@ -1,8 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
-import 'package:share_me/model/user.dart';
 
 class ProviderNavigation with ChangeNotifier {
 
@@ -12,17 +8,6 @@ class ProviderNavigation with ChangeNotifier {
   String _time           = '60';
   bool _visibleButton    = true;
   bool _isFcmInitialised = false;
-
-  List<int>_selectedChatUserPositions = [];
-  List<User>_friendsIsNotInChat = [];
-  File _groupIcon;
-  bool _isEditable = false;
-  bool _isGroup = false;
-
-  bool _hasText = false;
-  bool _isVoiceRecording = false;
-  Offset _voiceButtonPosition;
-  Recording _recording;
 
 
 
@@ -71,97 +56,5 @@ class ProviderNavigation with ChangeNotifier {
   set isFcmInitialised(bool value) {
     _isFcmInitialised = value;
     notifyListeners();
-  }
-
-
-  List<int> get selectedChatUserPositions => _selectedChatUserPositions;
-
-  set selectedChatUserPositions(List<int> value) {
-    _selectedChatUserPositions = value;
-    notifyListeners();
-  }
-
-
-  List<User> get friendsIsNotInChat => _friendsIsNotInChat;
-
-  set friendsIsNotInChat(List<User> value) {
-    _friendsIsNotInChat = value;
-    notifyListeners();
-  }
-
-
-  File get groupIcon => _groupIcon;
-
-  set groupIcon(File value) {
-    _groupIcon = value;
-    notifyListeners();
-  }
-
-
-  bool get isEditable => _isEditable;
-
-  set isEditable(bool value) {
-    _isEditable = value;
-    notifyListeners();
-  }
-
-
-  bool get isGroup => _isGroup;
-
-  set isGroup(bool value) {
-    _isGroup = value;
-    notifyListeners();
-  }
-
-
-  bool get hasText => _hasText;
-
-  set hasText(bool value) {
-    _hasText = value;
-    notifyListeners();
-  }
-
-
-  bool get isVoiceRecording => _isVoiceRecording;
-
-  set isVoiceRecording(bool value) {
-    _isVoiceRecording = value;
-    notifyListeners();
-  }
-
-
-  Offset get voiceButtonPosition => _voiceButtonPosition;
-
-  set voiceButtonPosition(Offset value) {
-    _voiceButtonPosition = value;
-    notifyListeners();
-  }
-
-
-  Recording get recording => _recording;
-
-  set recording(Recording value) {
-    _recording = value;
-    notifyListeners();
-  }
-
-
-
-
-
-  void addSelectedChatUserPositions(int value) {
-    _selectedChatUserPositions.add(value);
-    notifyListeners();
-  }
-
-  void removeSelectedChatUserPositions(int value) {
-    _selectedChatUserPositions.remove(value);
-    notifyListeners();
-  }
-
-  void clearAll(){
-    _groupIcon = null;
-    _isEditable = false;
-    _isGroup = false;
   }
 }

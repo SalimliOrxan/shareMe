@@ -8,7 +8,7 @@ import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/chatUser.dart';
 import 'package:share_me/model/message.dart';
 import 'package:share_me/model/user.dart';
-import 'package:share_me/provider/providerNavigation.dart';
+import 'package:share_me/provider/providerChat.dart';
 import 'package:share_me/service/auth.dart';
 import 'package:share_me/service/database.dart';
 
@@ -23,7 +23,7 @@ class GroupInfo extends StatefulWidget {
 
 class _GroupInfoState extends State<GroupInfo> {
 
-  ProviderNavigation _providerNavigation;
+  ProviderChat _providerChat;
   List<User> _friends;
   Message _chat;
   TextEditingController _controllerGroupName;
@@ -36,16 +36,16 @@ class _GroupInfoState extends State<GroupInfo> {
 
   @override
   void dispose() {
-    _providerNavigation.clearAll();
+    _providerChat.clearAll();
     _controllerGroupName.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    _providerNavigation = Provider.of(context);
-    _friends = Provider.of(context);
-    _chat = Provider.of(context);
+    _providerChat = Provider.of(context);
+    _friends      = Provider.of(context);
+    _chat         = Provider.of(context);
 
     _controllerGroupName?.text = _chat?.groupName;
 
@@ -136,7 +136,7 @@ class _GroupInfoState extends State<GroupInfo> {
       child: Container(
         padding: EdgeInsets.only(left: 20, right: 20),
         height: 60,
-        color: _providerNavigation.isEditable ? Colors.black26 : Colors.black54,
+        color: _providerChat.isEditable ? Colors.black26 : Colors.black54,
         child: Stack(
           alignment: Alignment.center,
           children: <Widget>[
@@ -144,7 +144,7 @@ class _GroupInfoState extends State<GroupInfo> {
               padding: EdgeInsets.only(top: 20),
               child: TextField(
                 controller: _controllerGroupName,
-                enabled: _providerNavigation.isEditable,
+                enabled: _providerChat.isEditable,
                 style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                     contentPadding: EdgeInsets.only(right: 20),
@@ -160,13 +160,13 @@ class _GroupInfoState extends State<GroupInfo> {
               right: 0,
               child: IconButton(
                 onPressed: () async {
-                  if(_providerNavigation.isEditable){
+                  if(_providerChat.isEditable){
                     _chat.groupName = _controllerGroupName.text.trim();
                     await Database.instance.updateChat(_chat, null);
                   }
-                  _providerNavigation.isEditable = !_providerNavigation.isEditable;
+                  _providerChat.isEditable = !_providerChat.isEditable;
                 },
-                icon: Icon(_providerNavigation.isEditable ? Icons.check : Icons.edit, color: Colors.deepOrange, size: 20)
+                icon: Icon(_providerChat.isEditable ? Icons.check : Icons.edit, color: Colors.deepOrange, size: 20)
               )
             )
           ]
@@ -309,8 +309,8 @@ class _GroupInfoState extends State<GroupInfo> {
 
 
   Future<void> _showAddAdminDialog() async {
-    _providerNavigation.selectedChatUserPositions?.clear();
-    _providerNavigation.friendsIsNotInChat?.clear();
+    _providerChat.selectedChatUserPositions?.clear();
+    _providerChat.friendsIsNotInChat?.clear();
 
     await showDialog(
         context: context,
@@ -337,8 +337,8 @@ class _GroupInfoState extends State<GroupInfo> {
   }
 
   Future<void> _showAddFriendDialog() async {
-    _providerNavigation.selectedChatUserPositions?.clear();
-    _providerNavigation.friendsIsNotInChat?.clear();
+    _providerChat.selectedChatUserPositions?.clear();
+    _providerChat.friendsIsNotInChat?.clear();
 
     await showDialog(
         context: context,
@@ -365,11 +365,11 @@ class _GroupInfoState extends State<GroupInfo> {
   }
 
   Future<void> _addUsersToAdmins() async {
-    if(_providerNavigation.selectedChatUserPositions.length > 0){
+    if(_providerChat.selectedChatUserPositions.length > 0){
       Navigator.pop(context);
 
-      _providerNavigation.selectedChatUserPositions.forEach((position){
-        User user = _providerNavigation.friendsIsNotInChat[position];
+      _providerChat.selectedChatUserPositions.forEach((position){
+        User user = _providerChat.friendsIsNotInChat[position];
         _chat.admins.add(user.uid);
       });
 
@@ -378,13 +378,13 @@ class _GroupInfoState extends State<GroupInfo> {
   }
 
   Future<void> _addUsersToChat() async {
-    if(_providerNavigation.selectedChatUserPositions.length > 0){
+    if(_providerChat.selectedChatUserPositions.length > 0){
       Navigator.pop(context);
 
       List<User>newChatUsers = [];
 
-      _providerNavigation.selectedChatUserPositions.forEach((position){
-        User user = _providerNavigation.friendsIsNotInChat[position];
+      _providerChat.selectedChatUserPositions.forEach((position){
+        User user = _providerChat.friendsIsNotInChat[position];
         newChatUsers.add(user);
         MyChatUser newUser = MyChatUser(uid: user.uid, name: user.fullName, img: user.imgProfile);
         _chat.usersForWrite.add(newUser.toMap());

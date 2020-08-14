@@ -24,7 +24,6 @@ class InsertFileView extends StatefulWidget {
 class _InsertFileState extends State<InsertFileView> {
 
   TextEditingController _controllerMessage;
-  Fab fileType;
 
   @override
   void initState() {
@@ -113,7 +112,7 @@ class _InsertFileState extends State<InsertFileView> {
 
   Future<void>_sendMessage() async {
     Navigator.pop(context);
-    String urlFile = await Storage.instance.uploadChatFile(widget.file, widget.chat.chatId, fileType);
+    String urlFile = await Storage.instance.uploadChatFile(widget.file, widget.chat.chatId, widget.fileType);
 
     MessageDetail messageDetail = MessageDetail(
         uid:      widget.me.uid,
@@ -121,8 +120,8 @@ class _InsertFileState extends State<InsertFileView> {
         message:  _controllerMessage.text.trim(),
         fullName: widget.me.fullName,
         userIcon: widget.me.imgProfile,
-        img:      fileType == Fab.photo ? urlFile : null,
-        video:    fileType == Fab.video ? urlFile : null
+        img:      widget.fileType == Fab.photo ? urlFile : null,
+        video:    widget.fileType == Fab.video ? urlFile : null
     );
 
     widget.chat.messagesForRead.add(messageDetail);

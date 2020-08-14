@@ -2,21 +2,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/utils.dart';
-import 'package:share_me/provider/providerNavigation.dart';
+import 'package:share_me/provider/providerChat.dart';
 
 class GroupIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ProviderNavigation providerNavigation = Provider.of(context);
+    ProviderChat providerChat = Provider.of(context);
 
-    return _groupIcon(providerNavigation);
+    return _groupIcon(providerChat);
   }
 
-  Widget _groupIcon(ProviderNavigation providerNavigation){
+  Widget _groupIcon(ProviderChat providerChat){
     return Stack(
         children: <Widget>[
-          providerNavigation.groupIcon == null
+          providerChat.groupIcon == null
               ? CircleAvatar(maxRadius: 30, child: Icon(Icons.group, color: Colors.white, size: 50))
               : Container(
               width: 60,
@@ -24,7 +24,7 @@ class GroupIcon extends StatelessWidget {
               decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                      image: FileImage(providerNavigation.groupIcon),
+                      image: FileImage(providerChat.groupIcon),
                       fit: BoxFit.cover
                   )
               )
@@ -34,7 +34,7 @@ class GroupIcon extends StatelessWidget {
               child: GestureDetector(
                   onTap: () async {
                     final file = await pickImage(false);
-                    providerNavigation.groupIcon = file;
+                    providerChat.groupIcon = file;
                   },
                   child: Container(
                       width: 60,

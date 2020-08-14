@@ -10,6 +10,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:share_me/provider/providerChat.dart';
 import 'package:share_me/provider/providerNavigation.dart';
 import 'package:share_me/service/auth.dart';
 import 'package:path_provider/path_provider.dart';
@@ -268,23 +269,23 @@ Future<void> startRecordingVoice(BuildContext context) async {
 }
 
 Future<File>stopRecordingVoice(BuildContext context) async {
-  ProviderNavigation _providerNavigation = Provider.of(context, listen: false);
+  ProviderChat _providerChat = Provider.of(context, listen: false);
   if(_recordingStatus == RecordingStatus.Recording){
     var result = await _recorder.stop();
     print("Stop recording: ${result.path}");
     print("Stop recording: ${result.duration}");
     File file = LocalFileSystem().file(result.path);
     print("File length: ${await file.length()}");
-    _providerNavigation.recording = result;
-    _recordingStatus = _providerNavigation.recording.status;
-    return File(_providerNavigation.recording.path);
+    _providerChat.recording = result;
+    _recordingStatus = _providerChat.recording.status;
+    return File(_providerChat.recording.path);
   }
   return null;
 }
 
 Future<void>_init(BuildContext context) async {
   try {
-    ProviderNavigation _providerNavigation = Provider.of(context, listen: false);
+    ProviderChat _providerChat = Provider.of(context, listen: false);
     if(await FlutterAudioRecorder.hasPermissions){
       String customPath = '/share_me_';
       Directory appDocDirectory;
@@ -308,7 +309,7 @@ Future<void>_init(BuildContext context) async {
       var current = await _recorder.current(channel: 0);
       print(current);
       // should be "Initialized", if all working fine
-      _providerNavigation.recording = current;
+      _providerChat.recording = current;
       _recordingStatus = current.status;
     } else Scaffold.of(context).showSnackBar(SnackBar(content: Text("You must accept permissions")));
   } catch (e) {
@@ -318,10 +319,10 @@ Future<void>_init(BuildContext context) async {
 
 Future<void>_start(BuildContext context) async {
   try {
-    ProviderNavigation _providerNavigation = Provider.of(context, listen: false);
+    ProviderChat _providerChat = Provider.of(context, listen: false);
     await _recorder.start();
     var current = await _recorder.current(channel: 0);
-    _providerNavigation.recording = current;
+    _providerChat.recording = current;
 
     const tick = const Duration(milliseconds: 50);
     Timer.periodic(tick, (Timer t) async {
@@ -331,8 +332,8 @@ Future<void>_start(BuildContext context) async {
 
       var current = await _recorder.current(channel: 0);
       // print(current.status);
-      _providerNavigation.recording = current;
-      _recordingStatus = _providerNavigation.recording.status;
+      _providerChat.recording = current;
+      _recordingStatus = _providerChat.recording.status;
     });
   } catch (e) {
     print(e);

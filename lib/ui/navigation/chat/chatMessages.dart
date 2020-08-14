@@ -13,9 +13,10 @@ import 'package:share_me/helper/utils.dart';
 import 'package:share_me/model/message.dart';
 import 'package:share_me/model/messageDetail.dart';
 import 'package:share_me/model/user.dart';
-import 'package:share_me/provider/providerNavigation.dart';
+import 'package:share_me/provider/providerChat.dart';
 import 'package:share_me/service/database.dart';
 import 'package:share_me/service/storage.dart';
+import 'package:share_me/ui/navigation/chat/audioView.dart';
 import 'package:share_me/ui/navigation/chat/groupInfo.dart';
 import 'package:share_me/ui/navigation/chat/insertFileView.dart';
 import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
@@ -35,19 +36,21 @@ enum FileFormat {GALLERY_IMAGE, CAMERA, GALLERY_VIDEO, VIDEO}
 
 class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMixin {
 
-  ProviderNavigation _providerNavigation;
+  ProviderChat _providerChat;
   Message _chat;
   List<ChatMessage>_activeMessages;
   List<int>_colorPositions;
+
+  GlobalKey _key;
   AnimationController _animationController;
   TextEditingController _controllerMessage;
-  GlobalKey _key = GlobalKey();
   File _file;
   Offset _startPosition;
   int _userCount = 0;
 
   @override
   void initState() {
+    _key = GlobalKey();
     _controllerMessage = TextEditingController();
     _animationController = AnimationController(
       vsync: this,
@@ -55,11 +58,11 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
     );
     _animationController.addListener((){
       if(_animationController.status == AnimationStatus.completed){
-        _providerNavigation.isVoiceRecording = false;
+        _providerChat.isVoiceRecording = false;
         _animationController.reset();
 
-        if(File(_providerNavigation.recording.path).existsSync()){
-          File(_providerNavigation.recording.path).deleteSync();
+        if(File(_providerChat.recording.path).existsSync()){
+          File(_providerChat.recording.path).deleteSync();
         }
       }
     });
@@ -75,8 +78,8 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    _providerNavigation = Provider.of(context);
-    _chat = Provider.of<Message>(context);
+    _providerChat = Provider.of(context);
+    _chat         = Provider.of<Message>(context);
     _initMessages();
 
     return Scaffold(
@@ -117,8 +120,8 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
               child: _emptyBody()
           ),
           Visibility(
-              visible: _providerNavigation.isVoiceRecording,
-              child: _providerNavigation.voiceButtonPosition != null ? _voiceInputView() : Container()
+              visible: _providerChat.isVoiceRecording,
+              child: _providerChat.voiceButtonPosition != null ? _voiceInputView() : Container()
           )
         ]
     );
@@ -142,11 +145,11 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
         textController: _controllerMessage,
         sendButtonBuilder: _sendButton,
         onTextChange: (message){
-          if(message.trim().length > 0 && !_providerNavigation.hasText){
-            _providerNavigation.hasText = true;
+          if(message.trim().length > 0 && !_providerChat.hasText){
+            _providerChat.hasText = true;
           }
-          else if(message.trim().length == 0 && _providerNavigation.hasText){
-            _providerNavigation.hasText = false;
+          else if(message.trim().length == 0 && _providerChat.hasText){
+            _providerChat.hasText = false;
           }
         }
     );
@@ -155,7 +158,9 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
   Widget _itemMessage(ChatMessage message){
     int index    = _chat.usersForRead.indexWhere((element) => element.uid == message.user.uid);
     bool isMe    = message.user.uid == widget.me.uid;
-    bool hasFile = message.video != null || message.image != null;
+    String audio = _chat.messagesForRead[_activeMessages.indexOf(message)].audio;
+    bool hasFile = message.video != null || message.image != null || audio != null;
+    int position = _activeMessages.indexOf(message);
 
     return Padding(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -186,16 +191,21 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
                         ? _photoView(message.image)
                         : message.video != null
                         ? _videoView(message.video)
+                        : hasFile
+                        ? _providerChat.audioViews[position.toString()] ?? _audioView(audio, position.toString())
                         : Container(),
-                    Align(
-                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text(
-                              message.text,
-                              style: TextStyle(color: Colors.white)
-                            )
-                        )
+                    Visibility(
+                      visible: message.text.isNotEmpty,
+                      child: Align(
+                          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Text(
+                                message.text,
+                                style: TextStyle(color: Colors.white)
+                              )
+                          )
+                      )
                     ),
                     Align(
                         alignment: isMe ? Alignment.bottomRight : Alignment.bottomLeft,
@@ -209,9 +219,9 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
                     )
                   ]
               )
-          ),
-        ),
-      ),
+          )
+        )
+      )
     );
   }
 
@@ -246,28 +256,28 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
   Widget _sendButton(send){
     return GestureDetector(
         onTap: (){
-          if(_providerNavigation.hasText) _sendMessage();
+          if(_providerChat.hasText) _sendMessage();
         },
         onLongPressStart: (view){
-          if(!_providerNavigation.hasText){
+          if(!_providerChat.hasText){
             _startPosition = view.globalPosition;
             Offset position = Offset(view.globalPosition.dx - 20, view.globalPosition.dy);
-            _providerNavigation.voiceButtonPosition = position;
-            _providerNavigation.isVoiceRecording = true;
+            _providerChat.voiceButtonPosition = position;
+            _providerChat.isVoiceRecording = true;
             startRecordingVoice(context);
           }
         },
         onLongPressMoveUpdate: (view){
-          if(!_providerNavigation.hasText && _startPosition != null){
+          if(!_providerChat.hasText && _startPosition != null){
             if(view.globalPosition.dx < _startPosition.dx - 20){
-              if(view.globalPosition.dx > _startPosition.dx / 2) _providerNavigation.voiceButtonPosition = view.globalPosition;
+              if(view.globalPosition.dx > _startPosition.dx / 2) _providerChat.voiceButtonPosition = view.globalPosition;
               else _animationController.animateTo(1.0);
             }
           }
         },
         onLongPressEnd: (view){
-          if(!_providerNavigation.hasText){
-            _providerNavigation.voiceButtonPosition = _startPosition;
+          if(!_providerChat.hasText){
+            _providerChat.voiceButtonPosition = _startPosition;
             stopRecordingVoice(context).then((file){
               if(file != null && file.existsSync()){
                 _file = file;
@@ -277,19 +287,19 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
           }
         },
         onLongPressUp: (){
-          if(!_providerNavigation.hasText){
-            if(!_animationController.isAnimating && _providerNavigation.isVoiceRecording) _providerNavigation.isVoiceRecording = false;
+          if(!_providerChat.hasText){
+            if(!_animationController.isAnimating && _providerChat.isVoiceRecording) _providerChat.isVoiceRecording = false;
           }
         },
         child: Padding(
           padding: const EdgeInsets.only(right: 10),
           child: Visibility(
-            visible: !_providerNavigation.isVoiceRecording,
+            visible: !_providerChat.isVoiceRecording,
             child: CircleAvatar(
-              maxRadius: _providerNavigation.isVoiceRecording ? 30 : 20,
-              backgroundColor: _providerNavigation.hasText ? Colors.white : colorApp,
+              maxRadius: _providerChat.isVoiceRecording ? 30 : 20,
+              backgroundColor: _providerChat.hasText ? Colors.white : colorApp,
               child: Icon(
-                  _providerNavigation.hasText ? Icons.send : Icons.keyboard_voice,
+                  _providerChat.hasText ? Icons.send : Icons.keyboard_voice,
                   color: Colors.blue,
                   size: 25
               ),
@@ -315,7 +325,7 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
                   child: Icon(Icons.delete_forever, color: Colors.red, size: 30)
                 ),
                 Text(
-                    _providerNavigation.recording != null ? _providerNavigation.recording.duration.toString().substring(2, 7) : '00:00',
+                    _providerChat.recording != null ? _providerChat.recording.duration.toString().substring(2, 7) : '00:00',
                     style: TextStyle(color: Colors.white)
                 ),
                 Spacer(),
@@ -335,7 +345,7 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
           ),
           Positioned(
             bottom: 0,
-            left: _providerNavigation.voiceButtonPosition.dx,
+            left: _providerChat.voiceButtonPosition.dx,
             child: Padding(
                 padding: const EdgeInsets.only(right: 10),
                 child: CircleAvatar(
@@ -357,13 +367,16 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
   Widget _photoView(String fileUrl){
     return GestureDetector(
       onTap: () => showImageDialog(context, fileUrl),
-      child: CachedNetworkImage(
-          imageUrl: fileUrl,
-          placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-          errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
-          fit: BoxFit.cover,
-          filterQuality: FilterQuality.none
-      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: 250),
+        child: CachedNetworkImage(
+            imageUrl: fileUrl,
+            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) => Icon(Icons.error, size: 30, color: Colors.white),
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.none
+        ),
+      )
     );
   }
 
@@ -371,6 +384,20 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
     return AspectRatio(
         aspectRatio: 4 / 3,
         child: VideoView(url: fileUrl, file: null)
+    );
+  }
+
+  Widget  _audioView(String fileUrl, String position){
+    return GestureDetector(
+      onTap: (){
+        _providerChat.audioViews.clear();
+        _providerChat.addAudioView(position, Container(child: AudioView(url: fileUrl, audioKey: position), height: 60));
+      },
+      child: Container(
+        width: double.infinity,
+        color: Colors.transparent,
+        child: Icon(Icons.music_note, color: Colors.pinkAccent, size: 30)
+      )
     );
   }
 
@@ -408,7 +435,7 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
     );
 
     _controllerMessage.clear();
-    if(_providerNavigation.hasText) _providerNavigation.hasText = false;
+    if(_providerChat.hasText) _providerChat.hasText = false;
     _chat.messagesForRead.add(messageDetail);
     _chat.messagesForWrite.add(messageDetail.toMap());
     _chat.senderFcmToken = widget.me.fcmToken;

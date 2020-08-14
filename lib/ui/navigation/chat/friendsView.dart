@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/model/message.dart';
 import 'package:share_me/model/user.dart';
-import 'package:share_me/provider/providerNavigation.dart';
+import 'package:share_me/provider/providerChat.dart';
 
 class FriendsView extends StatelessWidget {
 
@@ -16,20 +16,20 @@ class FriendsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ProviderNavigation providerNavigation = Provider.of(context);
-    List<User>users = _detectFriendsWhoIsNotInChat(providerNavigation);
+    ProviderChat providerChat = Provider.of(context);
+    List<User>users = _detectFriendsWhoIsNotInChat(providerChat);
 
     return Scaffold(
       body: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _checkBoxGroup(providerNavigation),
+            _checkBoxGroup(providerChat),
             ListView.builder(
               physics: NeverScrollableScrollPhysics(),
                 itemCount: users.length,
                 shrinkWrap: true,
-                itemBuilder: (context, position) => _itemUserForDialog(context, providerNavigation, users, position)
+                itemBuilder: (context, position) => _itemUserForDialog(context, providerChat, users, position)
             )
           ]
       )
@@ -37,15 +37,15 @@ class FriendsView extends StatelessWidget {
   }
 
 
-  Widget _checkBoxGroup(ProviderNavigation providerNavigation){
+  Widget _checkBoxGroup(ProviderChat providerChat){
     return Visibility(
       visible: chat == null,
       child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Checkbox(
-                onChanged: (value) => providerNavigation.isGroup = value,
-                value: providerNavigation.isGroup
+                onChanged: (value) => providerChat.isGroup = value,
+                value: providerChat.isGroup
             ),
             Text(
                 'Group',
@@ -56,17 +56,17 @@ class FriendsView extends StatelessWidget {
     );
   }
 
-  Widget _itemUserForDialog(BuildContext context, ProviderNavigation providerNavigation, List<User>users, int position){
+  Widget _itemUserForDialog(BuildContext context, ProviderChat providerChat, List<User>users, int position){
     return Container(
         width: double.infinity,
         child: ListTile(
             onTap: (){
-              if(providerNavigation.selectedChatUserPositions.contains(position)){
-                providerNavigation.removeSelectedChatUserPositions(position);
-              } else providerNavigation.addSelectedChatUserPositions(position);
+              if(providerChat.selectedChatUserPositions.contains(position)){
+                providerChat.removeSelectedChatUserPositions(position);
+              } else providerChat.addSelectedChatUserPositions(position);
 
-              if(providerNavigation.selectedChatUserPositions.length > 1 && !providerNavigation.isGroup){
-                providerNavigation.isGroup = true;
+              if(providerChat.selectedChatUserPositions.length > 1 && !providerChat.isGroup){
+                providerChat.isGroup = true;
               }
             },
             contentPadding: EdgeInsets.zero,
@@ -95,7 +95,7 @@ class FriendsView extends StatelessWidget {
                   }
               ),
             ),
-            trailing: providerNavigation.selectedChatUserPositions.contains(position) ? Icon(Icons.check, color: Colors.deepOrange, size: 20) : null,
+            trailing: providerChat.selectedChatUserPositions.contains(position) ? Icon(Icons.check, color: Colors.deepOrange, size: 20) : null,
             title: Text(
                 users[position].fullName ?? '',
                 style: TextStyle(color: Colors.white)
@@ -104,7 +104,7 @@ class FriendsView extends StatelessWidget {
     );
   }
 
-  List<User> _detectFriendsWhoIsNotInChat(ProviderNavigation providerNavigation){
+  List<User> _detectFriendsWhoIsNotInChat(ProviderChat providerChat){
     List<User> users = [];
 
     if(chat != null){
@@ -120,7 +120,7 @@ class FriendsView extends StatelessWidget {
           }
           if(found) users.add(User(uid: chatUser.uid, fullName: chatUser.name, imgProfile: chatUser.img));
         });
-        providerNavigation.friendsIsNotInChat.addAll(users);
+        providerChat.friendsIsNotInChat.addAll(users);
       } else {
         friends.forEach((friend){
           bool found = true;
@@ -133,7 +133,7 @@ class FriendsView extends StatelessWidget {
           }
           if(found) users.add(friend);
         });
-        providerNavigation.friendsIsNotInChat.addAll(users);
+        providerChat.friendsIsNotInChat.addAll(users);
       }
     } else users.addAll(friends);
     return users;

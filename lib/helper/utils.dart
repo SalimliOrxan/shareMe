@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -183,43 +184,43 @@ Future<void> showExitDialog(BuildContext context) async {
       context: context,
       builder: (BuildContext _context){
         return AlertDialog(
-          backgroundColor: Colors.blueGrey,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5)
-          ),
-          elevation: 5,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                'Are you sure?',
-                style: TextStyle(
-                    color: Colors.white
+            backgroundColor: Colors.blueGrey,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5)
+            ),
+            elevation: 5,
+            content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    'Are you sure?',
+                    style: TextStyle(
+                        color: Colors.white
+                    ),
+                  )
+                ]
+            ),
+            actions: <Widget>[
+              RaisedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Cancel'),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5)
                 ),
+                color: Colors.deepOrange,
+              ),
+              RaisedButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await Auth.instance.logout();
+                  },
+                  child: Text('Exit'),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5)
+                  ),
+                  color: Colors.deepOrange
               )
             ]
-          ),
-          actions: <Widget>[
-            RaisedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5)
-              ),
-              color: Colors.deepOrange,
-            ),
-            RaisedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await Auth.instance.logout();
-              },
-              child: Text('Exit'),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5)
-              ),
-              color: Colors.deepOrange
-            )
-          ]
         );
       }
   );
@@ -231,21 +232,21 @@ Future<void> showImageDialog(BuildContext context, String url) async {
       barrierDismissible: false,
       builder: (BuildContext _context){
         return Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            elevation: 0,
             backgroundColor: Colors.black,
-            iconTheme: IconThemeData(color: Colors.white)
-          ),
-          body: Center(
-            child: Container(
-              child: PhotoView(
-                imageProvider: CachedNetworkImageProvider(url),
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: PhotoViewComputedScale.contained * 2,
-              )
+            appBar: AppBar(
+                elevation: 0,
+                backgroundColor: Colors.black,
+                iconTheme: IconThemeData(color: Colors.white)
+            ),
+            body: Center(
+                child: Container(
+                    child: PhotoView(
+                      imageProvider: CachedNetworkImageProvider(url),
+                      minScale: PhotoViewComputedScale.contained,
+                      maxScale: PhotoViewComputedScale.contained * 2,
+                    )
+                )
             )
-          )
         );
       }
   );
@@ -259,6 +260,13 @@ Future<File> pickImage(bool isCamera) async {
 Future<File> pickVideo(bool isCamera) async {
   final pickedFile = await _picker.getVideo(source: isCamera ? ImageSource.camera : ImageSource.gallery, maxDuration: Duration(minutes: 10));
   return pickedFile != null ? File(pickedFile.path) : null;
+}
+
+Future<void> playSound(String soundName) async {
+  await AssetsAudioPlayer.newPlayer().open(
+      Audio("audio/$soundName"),
+      autoStart: true
+  );
 }
 
 Future<void> startRecordingVoice(BuildContext context) async {

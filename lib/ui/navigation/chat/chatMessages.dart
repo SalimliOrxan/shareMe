@@ -7,6 +7,7 @@ import 'package:dash_chat/dash_chat.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:link_previewer/link_previewer.dart';
 import 'package:provider/provider.dart';
 import 'package:share_me/helper/customValues.dart';
 import 'package:share_me/helper/utils.dart';
@@ -21,6 +22,7 @@ import 'package:share_me/ui/navigation/chat/groupInfo.dart';
 import 'package:share_me/ui/navigation/chat/insertFileView.dart';
 import 'package:share_me/ui/navigation/home/navigationHomePage.dart';
 import 'package:share_me/ui/navigation/home/videoView.dart';
+import 'package:share_me/ui/navigation/home/youtubeVideoView.dart';
 
 class ChatMessages extends StatefulWidget {
 
@@ -47,6 +49,7 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
   File _file;
   Offset _startPosition;
   int _userCount = 0;
+  bool _isDeletedFile = false;
 
   @override
   void initState() {
@@ -73,6 +76,7 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
   void dispose() {
     _animationController.dispose();
     _controllerMessage.dispose();
+    _providerChat.clearAll();
     super.dispose();
   }
 
@@ -95,9 +99,16 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
     return AppBar(
         elevation: 0,
         backgroundColor: Colors.black26,
-        title: Text(
-            _chat?.groupName ?? '',
-            style: TextStyle(color: Colors.white)
+        title: GestureDetector(
+          onTap: _openGroupInfo,
+          child: Container(
+            width: double.infinity,
+            color: Colors.transparent,
+            child: Text(
+                _chat?.groupName ?? '',
+                style: TextStyle(color: Colors.white)
+            ),
+          )
         ),
         actionsIconTheme: IconThemeData(color: Colors.white),
         actions: <Widget>[
@@ -133,13 +144,14 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
 
   Widget _chatView(){
     ChatUser user = ChatUser(uid: widget.me.uid, name: widget.me.fullName, avatar: widget.me.imgProfile);
-
     return DashChat(
         user: user,
         onSend: (_) => _sendMessage(),
         showUserAvatar: true,
         scrollToBottom: true,
+        inputMaxLines: 4,
         onLoadEarlier: (){},
+        chatFooterBuilder: _chatFooter,
         messages: _activeMessages,
         messageBuilder: _itemMessage,
         textController: _controllerMessage,
@@ -157,10 +169,11 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
 
   Widget _itemMessage(ChatMessage message){
     int index    = _chat.usersForRead.indexWhere((element) => element.uid == message.user.uid);
-    bool isMe    = message.user.uid == widget.me.uid;
-    String audio = _chat.messagesForRead[_activeMessages.indexOf(message)].audio;
-    bool hasFile = message.video != null || message.image != null || audio != null;
     int position = _activeMessages.indexOf(message);
+    bool isMe    = message.user.uid == widget.me.uid;
+    String audio = _chat.messagesForRead[position].audio;
+    String link  = _chat.messagesForRead[position].link;
+    bool hasFile = message.video != null || message.image != null || audio != null || link != null;
 
     return Padding(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -191,8 +204,10 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
                         ? _photoView(message.image)
                         : message.video != null
                         ? _videoView(message.video)
-                        : hasFile
+                        : audio != null
                         ? _providerChat.audioViews[position.toString()] ?? _audioView(audio, position.toString())
+                        : hasFile
+                        ? _linkView(link)
                         : Container(),
                     Visibility(
                       visible: message.text.isNotEmpty,
@@ -257,9 +272,13 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
     return GestureDetector(
         onTap: (){
           if(_providerChat.hasText) _sendMessage();
+          else playSound(soundRecording);
         },
-        onLongPressStart: (view){
+        onLongPressStart: (view) async {
           if(!_providerChat.hasText){
+            await playSound(soundRecording);
+            await Future.delayed(Duration(milliseconds: 300));
+            _isDeletedFile = false;
             _startPosition = view.globalPosition;
             Offset position = Offset(view.globalPosition.dx - 20, view.globalPosition.dy);
             _providerChat.voiceButtonPosition = position;
@@ -271,7 +290,11 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
           if(!_providerChat.hasText && _startPosition != null){
             if(view.globalPosition.dx < _startPosition.dx - 20){
               if(view.globalPosition.dx > _startPosition.dx / 2) _providerChat.voiceButtonPosition = view.globalPosition;
-              else _animationController.animateTo(1.0);
+              else {
+                _isDeletedFile = true;
+                _animationController.animateTo(1.0);
+                playSound(soundDelete);
+              }
             }
           }
         },
@@ -279,9 +302,11 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
           if(!_providerChat.hasText){
             _providerChat.voiceButtonPosition = _startPosition;
             stopRecordingVoice(context).then((file){
-              if(file != null && file.existsSync()){
-                _file = file;
-                _sendMessage();
+              if(!_isDeletedFile && file != null && file.existsSync()){
+                if(_providerChat.recording.duration >= Duration(seconds: 1)){
+                  _file = file;
+                  _sendMessage();
+                }
               }
             });
           }
@@ -387,7 +412,7 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
     );
   }
 
-  Widget  _audioView(String fileUrl, String position){
+  Widget _audioView(String fileUrl, String position){
     return GestureDetector(
       onTap: (){
         _providerChat.audioViews.clear();
@@ -398,6 +423,59 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
         color: Colors.transparent,
         child: Icon(Icons.music_note, color: Colors.pinkAccent, size: 30)
       )
+    );
+  }
+
+  Widget _linkView(String link){
+    return link.contains('youtu')
+        ? _youtubeView(link)
+        : Uri.parse(link).isAbsolute
+        ? LinkPreviewer(link: link)
+        : Container(child: Center(child: Text('Invalid link', style: TextStyle(color: Colors.white))));
+  }
+
+  Widget _youtubeView(String link){
+    return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: YoutubeView(url: link)
+    );
+  }
+
+  Widget _chatFooter(){
+    return !_providerChat.isLinkInsertMode ? Container() : Padding(
+      padding: const EdgeInsets.only(left: 10, bottom: 10),
+      child: Row(
+          children: <Widget>[
+            GestureDetector(
+                onTap: () => _providerChat.isLinkInsertMode = false,
+                child: Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: Container(
+                        padding: EdgeInsets.all(3),
+                        child: Icon(Icons.close, color: Colors.white, size: 10),
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.blueGrey
+                        )
+                    )
+                )
+            ),
+            Container(
+                height: 30,
+                padding: EdgeInsets.only(left: 5, right: 5),
+                decoration: BoxDecoration(
+                    color: Colors.blueGrey,
+                    borderRadius: BorderRadius.circular(30)
+                ),
+                child: Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                        'Insert Link'
+                    )
+                )
+            )
+          ]
+      ),
     );
   }
 
@@ -425,17 +503,20 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
   }
 
   Future<void>_sendMessage() async {
+    playSound(soundSent);
     MessageDetail messageDetail = MessageDetail(
         uid:      widget.me.uid,
         date:     Timestamp.now(),
-        message:  _controllerMessage.text.trim(),
+        message:  _providerChat.isLinkInsertMode ? '' : _controllerMessage.text.trim(),
         fullName: widget.me.fullName,
         userIcon: widget.me.imgProfile,
-        audio:    await Storage.instance.uploadChatFile(_file, _chat.chatId, Fab.audio)
+        audio:    await Storage.instance.uploadChatFile(_file, _chat.chatId, Fab.audio),
+        link:     _providerChat.isLinkInsertMode ? _controllerMessage.text.trim() : null
     );
 
     _controllerMessage.clear();
     if(_providerChat.hasText) _providerChat.hasText = false;
+    if(_providerChat.isLinkInsertMode) _providerChat.isLinkInsertMode = false;
     _chat.messagesForRead.add(messageDetail);
     _chat.messagesForWrite.add(messageDetail.toMap());
     _chat.senderFcmToken = widget.me.fcmToken;
@@ -463,18 +544,20 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
   }
 
   void _openGroupInfo(){
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => MultiProvider(
-                providers: [
-                  StreamProvider.value(value: Database.instance.usersByUid(widget.me.friends)),
-                  StreamProvider.value(value: Database.instance.getChatById(_chat.chatId))
-                ],
-                child: GroupInfo()
-            )
-        )
-    );
+    if(_chat.isGroup){
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => MultiProvider(
+                  providers: [
+                    StreamProvider.value(value: Database.instance.usersByUid(widget.me.friends)),
+                    StreamProvider.value(value: Database.instance.getChatById(_chat.chatId))
+                  ],
+                  child: GroupInfo()
+              )
+          )
+      );
+    }
   }
 
   Future<void>_showExitDialog() async {
@@ -555,13 +638,46 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
               )
           ),
           PopupMenuItem(
+              value: 'takeImage',
+              height: 65,
+              child: Center(
+                  child: CircleAvatar(
+                      maxRadius: 30,
+                      backgroundColor: Colors.black,
+                      child: Icon(Icons.camera_alt, color: Colors.lightBlueAccent, size: 30)
+                  )
+              )
+          ),
+          PopupMenuItem(
               value: 'video',
               height: 65,
               child: Center(
                   child: CircleAvatar(
                       maxRadius: 30,
                       backgroundColor: Colors.black,
-                      child: Icon(Icons.video_library, color: Colors.lightBlueAccent, size: 30)
+                      child: Icon(Icons.video_library, color: Colors.pink, size: 30)
+                  )
+              )
+          ),
+          PopupMenuItem(
+              value: 'takeVideo',
+              height: 65,
+              child: Center(
+                  child: CircleAvatar(
+                      maxRadius: 30,
+                      backgroundColor: Colors.black,
+                      child: Icon(Icons.videocam, color: Colors.pink, size: 30)
+                  )
+              )
+          ),
+          PopupMenuItem(
+              value: 'link',
+              height: 65,
+              child: Center(
+                  child: CircleAvatar(
+                      maxRadius: 30,
+                      backgroundColor: Colors.black,
+                      child: Icon(Icons.link, color: Colors.green, size: 30)
                   )
               )
           )
@@ -579,9 +695,23 @@ class _ChatMessagesState extends State<ChatMessages> with TickerProviderStateMix
         _openFileView(Fab.photo);
         break;
 
+      case 'takeImage':
+        _file = await pickImage(true);
+        _openFileView(Fab.photo);
+        break;
+
       case 'video':
         _file = await pickVideo(false);
         _openFileView(Fab.video);
+        break;
+
+      case 'takeVideo':
+        _file = await pickVideo(true);
+        _openFileView(Fab.video);
+        break;
+
+      case 'link':
+        _providerChat.isLinkInsertMode = true;
         break;
     }
   }

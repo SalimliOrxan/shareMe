@@ -193,7 +193,7 @@ class _GroupInfoState extends State<GroupInfo> {
       key: UniqueKey(),
       padding: const EdgeInsets.only(bottom: 1),
       child: Slidable(
-          enabled: user.uid != Auth.instance.uid && _chat.admins.contains(Auth.instance.uid),
+          enabled: user.uid != Auth.instance.uid && _chat.admins.contains(Auth.instance.uid) && !_chat.admins.contains(user.uid),
           actionPane: SlidableDrawerActionPane(),
           actionExtentRatio: 0.25,
           closeOnScroll: true,
@@ -320,7 +320,7 @@ class _GroupInfoState extends State<GroupInfo> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
               contentPadding: EdgeInsets.all(10),
               backgroundColor: colorApp,
-              content: Container(height: 500, child: FriendsView(friends: _friends, chat: _chat, forAdmin: true)),
+              content: Container(height: 500, child: FriendsView(friends: _friends, chat: _chat, forAdmin: true, isGroup: true)),
               actions: <Widget>[
                 IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -348,7 +348,7 @@ class _GroupInfoState extends State<GroupInfo> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
               contentPadding: EdgeInsets.all(10),
               backgroundColor: colorApp,
-              content: Container(height: 500, child: FriendsView(friends: _friends, chat: _chat, forAdmin: false)),
+              content: Container(height: 500, child: FriendsView(friends: _friends, chat: _chat, forAdmin: false, isGroup: true)),
               actions: <Widget>[
                 IconButton(
                     onPressed: () => Navigator.pop(context),

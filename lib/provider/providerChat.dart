@@ -10,7 +10,8 @@ class ProviderChat with ChangeNotifier {
   List<User>_friendsIsNotInChat = [];
   File _groupIcon;
   bool _isEditable = false;
-  bool _isGroup = false;
+  bool _isFabVisible = true;
+  bool _isLinkInsertMode = false;
 
   bool _hasText = false;
   bool _isVoiceRecording = false;
@@ -55,10 +56,18 @@ class ProviderChat with ChangeNotifier {
   }
 
 
-  bool get isGroup => _isGroup;
+  bool get isFabVisible => _isFabVisible;
 
-  set isGroup(bool value) {
-    _isGroup = value;
+  set isFabVisible(bool value) {
+    _isFabVisible = value;
+    notifyListeners();
+  }
+
+
+  bool get isLinkInsertMode => _isLinkInsertMode;
+
+  set isLinkInsertMode(bool value) {
+    _isLinkInsertMode = value;
     notifyListeners();
   }
 
@@ -140,7 +149,7 @@ class ProviderChat with ChangeNotifier {
   void clearAll(){
     _groupIcon = null;
     _isEditable = false;
-    _isGroup = false;
+    _isLinkInsertMode = false;
   }
 
   void clearAudioDetails(String key){

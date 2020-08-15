@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:link_previewer/link_previewer.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -150,14 +151,13 @@ class _HomePageState extends State<HomePage> {
           String postId = _posts[position].postId;
           return _me.postsHidden.contains(postId)
               ? _postHiddenItem(position)
-              :_postItem(position);
+              : _postItem(position);
         }
     );
   }
 
   Widget _postItem(int position){
     return Padding(
-        key: UniqueKey(),
         padding: const EdgeInsets.only(bottom: 15),
         child: Card(
             shape: RoundedRectangleBorder(
@@ -374,14 +374,14 @@ class _HomePageState extends State<HomePage> {
       case Fab.audio:
         view = Center(
             child: Container(
-              height: 50,
-              width: double.infinity,
-              color: Colors.transparent,
-              child: Icon(
-                  Icons.music_note,
-                  color: Colors.pinkAccent,
-                  size: 60
-              )
+                height: 50,
+                width: double.infinity,
+                color: Colors.transparent,
+                child: Icon(
+                    Icons.music_note,
+                    color: Colors.pinkAccent,
+                    size: 60
+                )
             )
         );
         break;
@@ -390,12 +390,7 @@ class _HomePageState extends State<HomePage> {
       case Fab.snippet:
         break;
       case Fab.link:
-        if(_posts.elementAt(position).fileUrl.contains('youtu')){
-          view = AspectRatio(
-              aspectRatio: 16 / 9,
-              child: YoutubeView(url: _posts.elementAt(position).fileUrl)
-          );
-        }
+        view = _linkView(_posts.elementAt(position).fileUrl);
         break;
       case Fab.video:
         String url = _posts.elementAt(position).fileUrl;
@@ -597,6 +592,23 @@ class _HomePageState extends State<HomePage> {
     return AspectRatio(
         aspectRatio: 4 / 3,
         child: VideoView(url: fileUrl, file: null)
+    );
+  }
+
+  Widget _linkView(String link){
+    return Container(
+      child: link.contains('youtu')
+          ? _youtubeView(link)
+          : Uri.parse(link).isAbsolute
+          ? LinkPreviewer(link: link)
+          : Container(child: Center(child: Text('Invalid link', style: TextStyle(color: Colors.white))))
+    );
+  }
+
+  Widget _youtubeView(String link){
+    return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: YoutubeView(url: link)
     );
   }
 

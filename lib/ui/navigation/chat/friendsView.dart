@@ -12,7 +12,8 @@ class FriendsView extends StatelessWidget {
   final List<User>friends;
   final Message chat;
   final bool forAdmin;
-  FriendsView({@required this.friends, @required this.chat, @required this.forAdmin});
+  final bool isGroup;
+  FriendsView({@required this.friends, @required this.chat, @required this.forAdmin, @required this.isGroup});
 
   @override
   Widget build(BuildContext context) {
@@ -20,54 +21,27 @@ class FriendsView extends StatelessWidget {
     List<User>users = _detectFriendsWhoIsNotInChat(providerChat);
 
     return Scaffold(
-      body: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            _checkBoxGroup(providerChat),
-            ListView.builder(
-              physics: NeverScrollableScrollPhysics(),
-                itemCount: users.length,
-                shrinkWrap: true,
-                itemBuilder: (context, position) => _itemUserForDialog(context, providerChat, users, position)
-            )
-          ]
+      body: ListView.builder(
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: users.length,
+          shrinkWrap: true,
+          itemBuilder: (context, position) => _itemUserForDialog(context, providerChat, users, position)
       )
     );
   }
 
 
-  Widget _checkBoxGroup(ProviderChat providerChat){
-    return Visibility(
-      visible: chat == null,
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Checkbox(
-                onChanged: (value) => providerChat.isGroup = value,
-                value: providerChat.isGroup
-            ),
-            Text(
-                'Group',
-                style: TextStyle(color: Colors.white)
-            )
-          ]
-      )
-    );
-  }
 
   Widget _itemUserForDialog(BuildContext context, ProviderChat providerChat, List<User>users, int position){
     return Container(
         width: double.infinity,
         child: ListTile(
             onTap: (){
+              if(!isGroup) providerChat.selectedChatUserPositions.clear();
+
               if(providerChat.selectedChatUserPositions.contains(position)){
                 providerChat.removeSelectedChatUserPositions(position);
               } else providerChat.addSelectedChatUserPositions(position);
-
-              if(providerChat.selectedChatUserPositions.length > 1 && !providerChat.isGroup){
-                providerChat.isGroup = true;
-              }
             },
             contentPadding: EdgeInsets.zero,
             leading: users[position].imgProfile.isEmpty

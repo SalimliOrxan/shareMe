@@ -26,3 +26,7 @@ List<Color>colors = [
   Colors.lightGreenAccent,
   Colors.deepOrangeAccent
 ];
+
+const soundRecording = 'recording.mp3';
+const soundSent      = 'sent.mp3';
+const soundDelete    = 'delete.wav';

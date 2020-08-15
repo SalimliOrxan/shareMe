@@ -9,6 +9,7 @@ class MessageDetail {
   String img;
   String video;
   String audio;
+  String link;
   Timestamp date;
 
   MessageDetail({
@@ -19,6 +20,7 @@ class MessageDetail {
     this.img,
     this.video,
     this.audio,
+    this.link,
     this.date
   });
 
@@ -31,6 +33,7 @@ class MessageDetail {
       'img':      img,
       'video':    video,
       'audio':    audio,
+      'link':     link,
       'date':     date
     };
   }
@@ -43,6 +46,7 @@ class MessageDetail {
     this.img      = map['img'];
     this.video    = map['video'];
     this.audio    = map['audio'];
+    this.link     = map['link'];
     this.date     = map['date'] ?? Timestamp.now();
   }
 }
